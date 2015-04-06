@@ -1,0 +1,27 @@
+{
+  "name": "javas",
+  "version": "1.0.0",
+  "description": "轻量的动静态绘图库",
+  "main": "index.js",
+  "dependencies": {
+    "gulp": "^3.8.11"
+  },
+  "devDependencies": {
+    "gulp": "^3.8.11",
+    "gulp-browserify": "^0.5.1",
+    "gulp-uglifyjs": "^0.6.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YuhangGe/javas.git"
+  },
+  "author": "羽航",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/YuhangGe/javas/issues"
+  },
+  "homepage": "https://github.com/YuhangGe/javas"
+}
