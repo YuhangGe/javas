@@ -1,5 +1,6 @@
 var _ = require('../util/util.js');
 var Config = require('../util/conf.js');
+var ShapeList = require('./list.js');
 
 module.exports = Manager;
 
@@ -25,9 +26,9 @@ function Manager(target, options) {
    * 当前版本假设target一定是canvas.
    * todo check target, if target is not canvas, create new Canvas element.
    */
-  this.canvas = target;
-  this.ctx = target.getContext('2d');
-  this.container = target.parentElement;
+  this.canvas = new JCavnas(target);
+  this.ctx = this.canvas.getContext('2d');
+  //this.container = target.parentElement;
 
   this.loopDelegate = _.bind(this, this._loopHandler);
   this.loopIntervalTime = Math.floor(1000 / FPS);
@@ -38,7 +39,7 @@ function Manager(target, options) {
 
   this.loopRunning = false;
 
-  this.shapeList = [];
+  this.shapeList = new ShapeList();
 
   this.resizeDelegate = _.bind(this, this.resizeHandler);
 
@@ -57,10 +58,10 @@ function Manager(target, options) {
 var __manager_prototype = Manager.prototype = {
   _init: function () {
     if (this.options.fitContainer) {
-      window.addEventListener('resize', this.resizeDelegate);
-      this._fitSize();
-      this.originWidth = this.width;
-      this.originHeight = this.height;
+      //window.addEventListener('resize', this.resizeDelegate);
+      //this._fitSize();
+      //this.originWidth = this.width;
+      //this.originHeight = this.height;
     } else {
       //todo
     }
@@ -86,10 +87,29 @@ var __manager_prototype = Manager.prototype = {
     if (!_.isObject(shape)) {
       _.error('shape is not Object');
     }
+    var zIndex = shape.options.zIndex;
+    if (zIndex === 'top') {
+      this.shapeList.push(shape);
+    } else if (zIndex === 'bottom') {
+      this.shapeList.unshift(shape);
+    } else {
+      this.shapeList.add(shape, zIndex);
+    }
 
+    var animate = shape.options.animate;
+    if (animate) {
+
+    }
+    this.loopRunning = true; //通知重绘（如果已经停止）
   },
   notifyAnimation: function (shapeName) {
 
+  },
+  repaint: function() {
+    /*
+     * 强制重绘，只需要简单设置loopRunning = true，则会重新绘制一次。
+     */
+    this.loopRunning = true;
   },
   _loopHandler: function () {
     var curTime = Date.now();
@@ -102,26 +122,35 @@ var __manager_prototype = Manager.prototype = {
     }
   },
   _loopRender: function (curTime) {
+    var paused = true;
+    this.shapeList.forEach(function(shape) {
 
+
+
+      if(paused && shape.state !== 'stable') {
+        paused = false;
+      }
+    });
+    /*
+     * 如果所有元素都达到了稳定状态，则可以不再重复绘制。
+     */
+    this.loopRunning = paused;
   },
   _loopCheck: function () {
     //todo
+    //如果所有Shape都处于stable状态，则loopRuning = false;
+    //否是，loopRuning = true;
 
     //this.loopRunning = true/false;
+
   },
   _loopStart: function () {
     this.loopStartTime = Date.now();
     this.loopNextIntervalTime = this.loopStartTime + this.loopIntervalTime;
     /*
-     * 开始主线程循环。
+     * 开始主循环。
      */
     setInterval(this.loopDelegate, this.loopConfigTime);
-  },
-  loop: function () {
-    if (this.loopRunning) {
-      return;
-    }
-    this._loopCheck();
   }
 };
 

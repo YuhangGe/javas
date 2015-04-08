@@ -176,14 +176,43 @@ var Utility = {
 
 module.exports = Utility;
 
-$extend(Utility, {
-  mergeOptions: function (givenOptions, defaultOptions) {
-    givenOptions = givenOptions || {};
-    for (var k in defaultOptions) {
-      if (!$hasProperty(givenOptions, k)) {
-        givenOptions[k] = defaultOptions[k];
+function walkMergeOptions(src, dst) {
+  var k, v, sv;
+  for (k in dst) {
+    v = dst[k];
+    if (!$hasProperty(src, k)) {
+      src[k] = v;
+    } else {
+      sv = src[k];
+      if (sv === true && $isObject(v)) { //如果配置为true，则表明可以使用默认的配置
+        src[k] = v;
+      } else if ($isObject(sv) && $isObject(v)) {
+        walkMergeOptions(sv, v);
       }
     }
+  }
+}
+
+$extend(Utility, {
+  warn: function() {
+    console.warn.apply(console, arguments);
+    if (Config.debug) {
+      //debug 模式下warn也断点，用于调试。
+      $error('warn under debug mode');
+    }
+  },
+  error: function(msg) {
+    console.error.apply(console, arguments);
+    if (Config.debug) {
+      $error(msg);
+    }
+  },
+  log: function() {
+    console.log.apply(console, arguments);
+  },
+  mergeOptions: function (givenOptions, defaultOptions) {
+    givenOptions = givenOptions || {};
+    walkMergeOptions(givenOptions, defaultOptions);
     return givenOptions;
   },
   merge: function (src, dst) {
