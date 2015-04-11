@@ -1,4 +1,4 @@
-var JColor = require('./color.js');
+var JColor = require('./../color/color.js');
 var JMatrix = require('./matrix.js');
 
 var defaultBaseOptions = {
@@ -13,8 +13,8 @@ var defaultBaseOptions = {
   //},
   animate: false,
   zIndex: 'top', // 'bottom' / 2
-  strokeStyle: new JColor(0, 0, 0),
-  fillStyle: new JColor(0, 0, 0),
+  strokeStyle: JColor.BLACK,
+  fillStyle: JColor.BLACK,
   lineWidth: 2.0,
   lineCap: 'round',
   lineJoin: 'round',

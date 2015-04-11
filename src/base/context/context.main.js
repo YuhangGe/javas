@@ -1,7 +1,7 @@
 var _ = require('../../util/util.js');
 var Class = require('j-oo');
 var defaultOptions = require('../option.js');
-var JColor = require('../color.js');
+var JColor = require('../../color/color.js');
 
 function $isJColor(obj) {
   return obj instanceof JColor;
