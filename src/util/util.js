@@ -126,5 +126,10 @@ $extend(Utility, {
       console.trace();
       throw new Error('assert failure.');
     }
+  },
+  bind: function(instance, func) {
+    return function() {
+      func.apply(instance, arguments);
+    }
   }
 });

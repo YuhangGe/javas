@@ -1,40 +1,40 @@
 var Class = require('j-oo');
 var JContext = require('./context.main.js');
 var defaultOptions = require('../option.js');
-var _ = require('../util/util.js');
+var _ = require('../../util/util.js');
 
 Class.partial(JContext, {
 
   beginPath: function() {
-    this.ctx.beginPath();
+    this._ctx.beginPath();
   },
   closePath: function() {
-    this.ctx.closePath();
+    this._ctx.closePath();
   },
   stroke: function(strokeStyle) {
     if (strokeStyle) {
-      this.ctx.strokeStyle = strokeStyle;
+      this._ctx.strokeStyle = strokeStyle;
     }
-    this.ctx.stroke();
+    this._ctx.stroke();
   },
   save: function() {
-    this.ctx.save();
+    this._ctx.save();
   },
   restore: function() {
-    this.ctx.restore();
+    this._ctx.restore();
   },
   fill: function() {
-    this.ctx.fill();
+    this._ctx.fill();
   },
   fillRect: function(x, y, width, height) {
-    this.ctx.fillRect(x, y, width, height);
+    this._ctx.fillRect(x, y, width, height);
   },
   strokeRect: function(x, y, width, height) {
-    this.ctx.strokeRect(x, y, width, height);
+    this._ctx.strokeRect(x, y, width, height);
   },
   drawRect: function(x, y, width, height) {
-    this.ctx.fillRect(x, y, width, height);
-    this.ctx.strokeRect(x, y, width, height);
+    this._ctx.fillRect(x, y, width, height);
+    this._ctx.strokeRect(x, y, width, height);
   },
   fillEllipse: function() {
 
@@ -55,20 +55,20 @@ Class.partial(JContext, {
 
   },
   lineTo: function(x, y) {
-    this.ctx.moveTo(x, y);
+    this._ctx.moveTo(x, y);
   },
   lineToByPoints: function(p1, p2) {
     var ps = _.isArray(p1) ? p1 : arguments;
     for (var i = 0; i < ps.length; i++) {
-      this.ctx.moveTo(ps[i].x, ps[i].y);
+      this._ctx.moveTo(ps[i].x, ps[i].y);
     }
   },
   drawLine: function(x1, y1, x2, y2) {
-    this.ctx.beginPath();
-    this.ctx.moveTo(x1, y1);
-    this.ctx.lineTo(x2, y2);
-    this.ctx.stroke();
-    this.ctx.closePath();
+    this._ctx.beginPath();
+    this._ctx.moveTo(x1, y1);
+    this._ctx.lineTo(x2, y2);
+    this._ctx.stroke();
+    this._ctx.closePath();
   },
   /**
    * 过定点，以一定角度绘制一定长度的直线
@@ -83,13 +83,13 @@ Class.partial(JContext, {
   drawLineByPoints: function(p1, p2) {
     var ps = _.isArray(p1) ? p1 : arguments;
     _.assert(ps.length > 1);
-    this.ctx.beginPath();
-    this.ctx.moveTo(ps[0].x, ps[0].y);
+    this._ctx.beginPath();
+    this._ctx.moveTo(ps[0].x, ps[0].y);
     for (var i = 1; i < ps.length; i++) {
-      this.ctx.lineTo(ps[i].x, ps[i].y);
+      this._ctx.lineTo(ps[i].x, ps[i].y);
     }
-    this.ctx.stroke();
-    this.ctx.closePath();
+    this._ctx.stroke();
+    this._ctx.closePath();
   },
   strokePie: function() {
 
@@ -102,7 +102,7 @@ Class.partial(JContext, {
   },
   drawBezier: function(p1, p2) {
     var points = _.isArray(p1) ? p1 : p2;
-    var ctx = this.ctx;
+    var ctx = this._ctx;
     var len = points.length - 1;
     _.assert(len > 0);
     ctx.beginPath();

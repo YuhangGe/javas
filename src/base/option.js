@@ -13,8 +13,8 @@ var defaultBaseOptions = {
   //},
   animate: false,
   zIndex: 'top', // 'bottom' / 2
-  strokeColor: new JColor(0, 0, 0),
-  fillColor: new JColor(0, 0, 0),
+  strokeStyle: new JColor(0, 0, 0),
+  fillStyle: new JColor(0, 0, 0),
   lineWidth: 2.0,
   lineCap: 'round',
   lineJoin: 'round',

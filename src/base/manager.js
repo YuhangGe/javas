@@ -2,6 +2,8 @@ var _ = require('../util/util.js');
 var Config = require('../util/conf.js');
 var ShapeList = require('./list.js');
 var JCavnas = require('./canvas.js');
+var Class = require('j-oo');
+
 module.exports = Manager;
 
 
@@ -27,8 +29,7 @@ function Manager(target, options) {
    * todo check target, if target is not canvas, create new Canvas element.
    */
   this.canvas = new JCavnas(target);
-  this.ctx = this.canvas.getContext('2d');
-  //this.container = target.parentElement;
+  this.context = this.canvas.context;
 
   this.loopDelegate = _.bind(this, this._loopHandler);
   this.loopIntervalTime = Math.floor(1000 / FPS);
@@ -122,10 +123,9 @@ var __manager_prototype = Manager.prototype = {
     }
   },
   _loopRender: function (curTime) {
+    _.log('loop render');
     var paused = true;
     this.shapeList.forEach(function(shape) {
-
-
 
       if(paused && shape.state !== 'stable') {
         paused = false;
@@ -136,14 +136,7 @@ var __manager_prototype = Manager.prototype = {
      */
     this.loopRunning = paused;
   },
-  _loopCheck: function () {
-    //todo
-    //如果所有Shape都处于stable状态，则loopRuning = false;
-    //否是，loopRuning = true;
 
-    //this.loopRunning = true/false;
-
-  },
   _loopStart: function () {
     this.loopStartTime = Date.now();
     this.loopNextIntervalTime = this.loopStartTime + this.loopIntervalTime;
