@@ -1,11 +1,9 @@
 var _ = require('../util/util.js');
 var JContext = require('./context.js');
-
 module.exports = JCanvas;
 
 function JCanvas(originCanvas) {
   this.originCanvas = originCanvas;
-  this.canvas = originContext2d.canvas;
 }
 var __jcanvas_prototype = JCanvas.prototype = {
   getContext: function(type) {

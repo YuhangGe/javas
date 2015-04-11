@@ -4,7 +4,8 @@
   "description": "轻量的动静态绘图库",
   "main": "index.js",
   "dependencies": {
-    "gulp": "^3.8.11"
+    "gulp": "^3.8.11",
+    "j-oo": "0.0.1"
   },
   "devDependencies": {
     "gulp": "^3.8.11",

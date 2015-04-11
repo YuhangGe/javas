@@ -1,7 +1,7 @@
 var _ = require('../util/util.js');
 var Config = require('../util/conf.js');
 var ShapeList = require('./list.js');
-
+var JCavnas = require('./canvas.js');
 module.exports = Manager;
 
 

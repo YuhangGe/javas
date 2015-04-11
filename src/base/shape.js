@@ -1,19 +1,15 @@
 var _ = require('../util/util.js');
-var defaultOptions = require('./option.js');
+var Class = require('j-oo');
 
-module.exports = BaseShape;
-
-
-function BaseShape(options) {
+module.exports = Class(function BaseShape(options) {
   this.id = _.uid();
   this.state = 'ready';
   this.options = options;
-  this.strokeColor = options.strokeColor;
-  this.fillColor = options.fillColor;
-}
-
-BaseShape.prototype = {
+  this.strokeStyle = options.strokeColor;
+  this.fillStyle = options.fillColor;
+  this.lineWidth = options.lineWidth;
+}, {
   render: function(ctx) {
 
   }
-};
+});
