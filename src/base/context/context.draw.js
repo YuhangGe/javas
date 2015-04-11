@@ -17,12 +17,7 @@ Class.partial(JContext, {
     }
     this._ctx.stroke();
   },
-  save: function() {
-    this._ctx.save();
-  },
-  restore: function() {
-    this._ctx.restore();
-  },
+
   fill: function() {
     this._ctx.fill();
   },

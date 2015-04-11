@@ -31,9 +31,24 @@ function $query(queryString) {
   return document.querySelector(queryString);
 }
 
-var __javas_uid__ = 0;
+var __javas_uid__ = new Uint32Array(4);
 function uid() {
-  return (__javas_uid__++).toString(36);
+  function inc(idx) {
+    if (idx === 5) {
+      _.error('What a fuck! uid can be such huge??!!');
+    }
+    __javas_uid__[idx]++;
+    if (__javas_uid__[idx] === 0xFFFF) {
+      inc(idx + 1);
+      __javas_uid__[idx] = 0;
+    }
+  }
+  inc(0);
+  var id = [];
+  for (var i = __javas_uid__.length - 1; i >= 0; i--) {
+    id.push(__javas_uid__[i].toString(36));
+  }
+  return id.join('-');
 }
 function $error(msg) {
   if (Config.debug) {

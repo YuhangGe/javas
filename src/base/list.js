@@ -4,6 +4,7 @@ module.exports = ShapeList;
 
 function ListNode(value, previous, next) {
   this.value = value;
+  this.animationList = [];
   this.previous = previous ? previous : null;
   this.next = next ? next : null;
 }
@@ -37,6 +38,9 @@ ShapeList.prototype = {
   unshift: function(shape) {
     this.add(shape, 0);
   },
+  getById: function(shapeId) {
+    return this.map.get(shapeId).value;
+  },
   add: function(shape, index) {
     if (!shape.id) {
       shape.id = _.uid();
@@ -48,6 +52,7 @@ ShapeList.prototype = {
     if (!this.head) {
       this.head = this.tail = n;
     } else if (index >= this.length - 1) {
+      this.tail.next = n;
       n.previous = this.tail;
       this.tail = n;
     } else if (index <= 0) {

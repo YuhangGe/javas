@@ -18,6 +18,7 @@ var defaultBaseOptions = {
   lineWidth: 2.0,
   lineCap: 'round',
   lineJoin: 'round',
+  opacity: 1.0,
   transformMatrix: new JMatrix()
 };
 

@@ -70,5 +70,36 @@ module.exports = Class(function JContext(jcanvas) {
       this._ctx.fillStyle = style.value;
       this._fillStyle = style;
     }
+  },
+  globalAlpha: {
+    get: function() {
+      return this._ctx.globalAlpha;
+    },
+    set: function(alpha) {
+      this._ctx.globalAlpha = alpha;
+    }
+  },
+  globalCompositeOperation: {
+    get: function() {
+      return this._ctx.globalCompositeOperation;
+    },
+    set: function(operation) {
+      this._ctx.globalCompositeOperation = operation;
+    }
+  },
+  clear: function() {
+    this.clearRect(0, 0, this.canvas.width, this.canvas.height);
+  },
+  clearRect: function(x, y, width, height) {
+    this._ctx.clearRect(x, y, width, height);
+  },
+  save: function() {
+    /*
+     * todo 还需要保存 _strokeStyle 等这些自己处理的属性。 !important
+     */
+    this._ctx.save();
+  },
+  restore: function() {
+    this._ctx.restore();
   }
 });

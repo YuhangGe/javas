@@ -8,7 +8,7 @@ var Config = {
    *   或者某些情况下，需要超过100FPS的极限；
    *   这里仍然提供了可以配置的选项。
    */
-  loopIntervalTime: 20
+  loopIntervalTime: 10
 };
 
 module.exports = Config;
