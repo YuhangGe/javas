@@ -6,9 +6,12 @@ var Class = require('j-oo');
 var JAnimation = require('./animation.js');
 
 var defaultOptions = {
-  FPS: 30,
-  fitContainer: true,
-  unitLength: 10
+  FPS: 80,
+  unitX: 1,
+  unitY: 1,
+  unitS: 1,
+  offsetX: 0,
+  offsetY: 0
 };
 
 module.exports = Class(function Manager(target, options) {
@@ -39,57 +42,74 @@ module.exports = Class(function Manager(target, options) {
   this.loopRunning = false;
 
   this.shapeList = new ShapeList();
-
-  this.resizeDelegate = _.bind(this, this.resizeHandler);
-
-  this.width = 0;
-  this.height = 0;
-  this.originWidth = 0;
-  this.originHeight = 0;
-  this._unitLength = this.options.unitLength;
-  this._originUnitLength = this.options.unitLength;
-
   this._animationMap = new Map();
   this._aniNotifyMap = new Map();
 
-  this._init();
 
+  if (options.width) {
+    this.width = options.width;
+  }
+  if (options.height) {
+    this.height = options.height;
+  }
+  this.unitX = options.unitX;
+  this.unitY = options.unitY;
+  this.unitS = options.unitS;
+
+  this.offsetX = options.offsetX;
+  this.offsetY = options.offsetY;
+
+  /*
+   * start loop
+   */
   this._loopStart();
 
 }, {
-  unitLength: {
+  width: {
     get: function() {
-
+      return this.canvas.width;
     },
-    set: function() {
-
+    set: function(width) {
+      this.canvas.width = width;
     }
   },
-  _init: function () {
-    if (this.options.fitContainer) {
-      //window.addEventListener('resize', this.resizeDelegate);
-      //this._fitSize();
-      //this.originWidth = this.width;
-      //this.originHeight = this.height;
-    } else {
-      //todo
+  height: {
+    get: function() {
+      return this.canvas.width;
+    },
+    set: function(height) {
+      this.canvas.height = height;
     }
-
   },
-  _fitSize: function () {
-    var w = this.container.offsetWidth;
-    var h = this.container.offsetHeight;
-    this.canvas.width = this.width = w;
-    this.canvas.height = this.height = h;
+  unitX: {
+    get: function() {
+      return this.context.unitX;
+    },
+    set: function(val) {
+      this.context.unitX = val;
+    }
   },
-  _resizeHandler: function () {
-    this._fitSize();
-
+  unitY: {
+    get: function() {
+      return this.context.unitY;
+    },
+    set: function(val) {
+      this.context.unitY = val;
+    }
   },
-  setSize: function (width, height, isRelativeToUnitLength) {
-    _.error('todo');
+  unitS: {
+    get: function() {
+      return this.context.unitS;
+    },
+    set: function(val) {
+      this.context.unitS = val;
+    }
   },
-  getSize: function (isRelativeToUnitLength) {
+  setSize: function (width, height) {
+    this.width = width;
+    this.height = height;
+  },
+  getSize: function () {
     _.error('todo');
   },
   addShape: function (shape, zIndex) {
@@ -155,11 +175,20 @@ module.exports = Class(function Manager(target, options) {
   notifyAnimation: function (shapeName) {
 
   },
-  repaint: function() {
-    /*
-     * 强制重绘，只需要简单设置loopRunning = true，则会重新绘制一次。
-     */
-    this.loopRunning = true;
+  paint: function() {
+    var ctx = this.context;
+    ctx.clear();
+    ctx.save();
+    ctx.translate(this.offsetX, this.offsetY);
+    this.shapeList.forEach(function(shape) {
+      if (shape.state !== 'wait') {
+        ctx.save();
+        //_.log('do render');
+        shape.onRender(ctx);
+        ctx.restore();
+      }
+    });
+    ctx.restore();
   },
   _loopHandler: function () {
     var curTime = Date.now();
@@ -179,6 +208,8 @@ module.exports = Class(function Manager(target, options) {
     var aniNotifyMap = this._aniNotifyMap;
 
     ctx.clear();
+    ctx.save();
+    ctx.translate(this.offsetX, this.offsetY);
 
     this.shapeList.forEach(function(shape) {
 
@@ -246,6 +277,8 @@ module.exports = Class(function Manager(target, options) {
      * 如果所有元素都达到了稳定状态，则可以不再重复绘制。
      */
     this.loopRunning = !paused;
+
+    ctx.restore();
   },
 
   _loopStart: function () {

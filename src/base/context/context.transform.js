@@ -23,6 +23,6 @@ Class.partial(JContext, function() {
 
   },
   translate: function(offsetX, offsetY) {
-
+    this._ctx.translate(offsetX * this.unitX, offsetY * this.unitY);
   }
 })

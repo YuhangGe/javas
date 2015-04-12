@@ -20,6 +20,10 @@ module.exports = Class(function JContext(jcanvas) {
   this._ctx.strokeStyle = this._strokeStyle.value;
   this._ctx.fillStyle = this._fillStyle.value;
 
+  this.unitX = 1;
+  this.unitY = 1;
+  this.unitS = 1;
+
 }, {
   lineWidth: {
     get: function() {

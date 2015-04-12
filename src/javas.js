@@ -2,7 +2,9 @@ var Manager = require('./base/manager.js');
 var _ = require('./util/util.js');
 var Config = require('./util/conf.js');
 
-var Javas = {};
+var Javas = {
+  util: _
+};
 module.exports = Javas;
 
 _.extend(Javas, {

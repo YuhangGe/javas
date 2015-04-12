@@ -22,14 +22,20 @@ Class.partial(JContext, {
     this._ctx.fill();
   },
   fillRect: function(x, y, width, height) {
-    this._ctx.fillRect(x, y, width, height);
+    var ux = this.unitX;
+    var uy = this.unitY;
+    this._ctx.fillRect(x * this.unitX, y * uy, width * ux, height * uy);
   },
   strokeRect: function(x, y, width, height) {
-    this._ctx.strokeRect(x, y, width, height);
+    var ux = this.unitX;
+    var uy = this.unitY;
+    this._ctx.strokeRect(x * this.unitX, y * uy, width * ux, height * uy);
   },
   drawRect: function(x, y, width, height) {
-    this._ctx.fillRect(x, y, width, height);
-    this._ctx.strokeRect(x, y, width, height);
+    var ux = this.unitX;
+    var uy = this.unitY;
+    this._ctx.fillRect(x * ux, y * uy, width * ux, height * uy);
+    this._ctx.strokeRect(x * ux, y * uy, width * ux, height * uy);
   },
   fillEllipse: function() {
 
@@ -50,18 +56,24 @@ Class.partial(JContext, {
 
   },
   lineTo: function(x, y) {
-    this._ctx.moveTo(x, y);
+    var ux = this.unitX;
+    var uy = this.unitY;
+    this._ctx.moveTo(x * ux, y * uy);
   },
   lineToByPoints: function(p1, p2) {
+    var ux = this.unitX;
+    var uy = this.unitY;
     var ps = _.isArray(p1) ? p1 : arguments;
     for (var i = 0; i < ps.length; i++) {
-      this._ctx.moveTo(ps[i].x, ps[i].y);
+      this._ctx.moveTo(ps[i].x * ux, ps[i].y * uy);
     }
   },
   drawLine: function(x1, y1, x2, y2) {
+    var ux = this.unitX;
+    var uy = this.unitY;
     this._ctx.beginPath();
-    this._ctx.moveTo(x1, y1);
-    this._ctx.lineTo(x2, y2);
+    this._ctx.moveTo(x1 * ux, y1 * uy);
+    this._ctx.lineTo(x2 * ux, y2 * uy);
     this._ctx.stroke();
     this._ctx.closePath();
   },
@@ -76,12 +88,14 @@ Class.partial(JContext, {
 
   },
   drawLineByPoints: function(p1, p2) {
+    var ux = this.unitX;
+    var uy = this.unitY;
     var ps = _.isArray(p1) ? p1 : arguments;
     _.assert(ps.length > 1);
     this._ctx.beginPath();
-    this._ctx.moveTo(ps[0].x, ps[0].y);
+    this._ctx.moveTo(ps[0].x * ux, ps[0].y * uy);
     for (var i = 1; i < ps.length; i++) {
-      this._ctx.lineTo(ps[i].x, ps[i].y);
+      this._ctx.lineTo(ps[i].x * ux, ps[i].y * uy);
     }
     this._ctx.stroke();
     this._ctx.closePath();
@@ -99,22 +113,24 @@ Class.partial(JContext, {
     var points = _.isArray(p1) ? p1 : p2;
     var ctx = this._ctx;
     var len = points.length - 1;
+    var ux = this.unitX;
+    var uy = this.unitY;
     _.assert(len > 0);
     ctx.beginPath();
     var cx, cy, dx, dy;
     cx = points[0].x;
     cy = points[0].y;
-    ctx.moveTo(cx, cy);
+    ctx.moveTo(cx * ux, cy * uy);
     for(var i = 0; i < len; i++) {
       dx = (points[i].x + points[i + 1].x) / 2;
       dy = (points[i].y + points[i + 1].y) / 2;
-      ctx.quadraticCurveTo(cx, cy, dx, dy);
+      ctx.quadraticCurveTo(cx * ux, cy * uy, dx * ux, dy * uy);
       cx = dx;
       cy = dy;
     }
     dx = points[len].x;
     dy = points[len].y;
-    ctx.quadraticCurveTo(cx, cy, dx, dy);
+    ctx.quadraticCurveTo(cx * ux, cy * uy, dx * ux, dy * uy);
     ctx.stroke();
     ctx.closePath();
   }

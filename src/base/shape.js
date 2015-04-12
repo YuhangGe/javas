@@ -29,7 +29,7 @@ module.exports = Class(function BaseShape() {
   onRender: function(ctx) {
     ctx.fillStyle = this.fillStyle;
     ctx.strokeStyle = this.strokeStyle;
-    ctx.lineWidth = this.lineWidth;
+    ctx.lineWidth = this.lineWidth * ctx.unitS;
     ctx.lineCap = this.lineCap;
     ctx.lineJoin = this.lineJoin;
     ctx.globalAlpha = this.opacity;
