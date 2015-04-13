@@ -212,7 +212,7 @@ module.exports = Class(function Manager(target, options) {
 
     ctx.clear();
     ctx.save();
-    ctx.translate(this.offsetX, this.offsetY);
+    //ctx.translate(this.offsetX, this.offsetY);
 
     this.shapeList.forEach(function(shape) {
 

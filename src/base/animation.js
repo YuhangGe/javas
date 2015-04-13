@@ -27,6 +27,9 @@ module.exports = Class(function JAnimation(options) {
     if (_.isUndefined(this.fromValue)) {
       this.fromValue = shape[this.property];
     }
+    if (_.isUndefined(this.toValue)) {
+      this.toValue = shape[this.property];
+    }
     this.state = 'run';
     this.startTime = curTime;
     this.endTime = curTime + this.duration;
@@ -34,6 +37,7 @@ module.exports = Class(function JAnimation(options) {
   execute: function(shape, curTime) {
     shape[this.property] = this.timeFn(this.startTime, curTime, this.endTime, this.fromValue, this.toValue);
     if (curTime >= this.endTime) {
+      shape[this.property] = this.toValue;
       this.state = 'stable';
     }
   }

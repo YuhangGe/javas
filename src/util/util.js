@@ -6,6 +6,9 @@ function $isUndefined(obj) {
 function $isArray(obj) {
   return Array.isArray(obj);
 }
+function $isFunction(obj) {
+  return typeof obj === 'function';
+}
 function $isObject(obj) {
   return obj !== null && typeof obj === 'object';
 }
@@ -88,6 +91,7 @@ var Utility = {
   isUndefined: $isUndefined,
   isArray: $isArray,
   isDefined: $isDefined,
+  isFunction: $isFunction,
   error: $error,
   defineProperty: $defineProperty,
   defineGetterSetter: $defineGetterSetter
