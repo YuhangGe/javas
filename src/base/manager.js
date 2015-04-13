@@ -7,11 +7,12 @@ var JAnimation = require('./animation.js');
 
 var defaultOptions = {
   FPS: 80,
-  unitX: 1,
-  unitY: 1,
-  unitS: 1,
-  offsetX: 0,
-  offsetY: 0
+  unitX: 1.0,
+  unitY: 1.0,
+  offsetX: 1.0,
+  offsetY: 1.0,
+  scaleX: 1.0,
+  scaleY: 1.0
 };
 
 module.exports = Class(function Manager(target, options) {
@@ -54,10 +55,11 @@ module.exports = Class(function Manager(target, options) {
   }
   this.unitX = options.unitX;
   this.unitY = options.unitY;
-  this.unitS = options.unitS;
 
   this.offsetX = options.offsetX;
   this.offsetY = options.offsetY;
+  this.scaleX = options.scaleX;
+  this.scaleY = options.scaleY;
 
   /*
    * start loop
@@ -179,6 +181,7 @@ module.exports = Class(function Manager(target, options) {
     var ctx = this.context;
     ctx.clear();
     ctx.save();
+    ctx.scale(this.scaleX, this.scaleY);
     ctx.translate(this.offsetX, this.offsetY);
     this.shapeList.forEach(function(shape) {
       if (shape.state !== 'wait') {

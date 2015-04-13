@@ -1,10 +1,22 @@
 var Class = require('j-oo');
 var JContext = require('./context.main.js');
-var defaultOptions = require('../option.js');
 var _ = require('../../util/util.js');
+var halfPI = Math.PI / 2;
+var PI2 = Math.PI * 2;
+var PI = Math.PI;
 
 Class.partial(JContext, {
-
+  moveTo: function(x, y) {
+    this._ctx.moveTo(x * this.unitX, y * this.unitY);
+  },
+  arcTo: function(x0, y0, x1, y1, radius) {
+    var ux = this.unitX;
+    var uy = this.unitY;
+    this._ctx.arcTo(x0 * ux, y0 * uy, x1 * ux, y1 * uy, radius);
+  },
+  arc: function(x, y, radius, startAngle, endAngle, counterclockwise) {
+    this._ctx.arc(x * this.unitX, y * this.unitY, radius, startAngle - halfPI, endAngle - halfPI, counterclockwise);
+  },
   beginPath: function() {
     this._ctx.beginPath();
   },
@@ -56,9 +68,7 @@ Class.partial(JContext, {
 
   },
   lineTo: function(x, y) {
-    var ux = this.unitX;
-    var uy = this.unitY;
-    this._ctx.moveTo(x * ux, y * uy);
+    this._ctx.lineTo(x * this.unitX, y * this.unitY);
   },
   lineToByPoints: function(p1, p2) {
     var ux = this.unitX;

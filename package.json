@@ -2,12 +2,18 @@
   "name": "javas",
   "version": "1.0.0",
   "description": "轻量的动静态绘图库",
-  "main": "index.js",
+  "main": "src/javas.js",
   "dependencies": {
+    "browserify": "~9.0.8",
     "gulp": "^3.8.11",
-    "gulp-browserify": "^0.5.1",
+    "gulp-sourcemaps": "~1.5.1",
     "gulp-uglifyjs": "^0.6.1",
-    "j-oo": "0.0.2"
+    "gulp-util": "~3.0.4",
+    "j-oo": "0.0.2",
+    "lodash.assign": "~3.0.0",
+    "vinyl-buffer": "~1.0.0",
+    "vinyl-source-stream": "^1.1.0",
+    "watchify": "~3.1.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
