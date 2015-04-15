@@ -64,8 +64,10 @@ Class.partial(JContext, {
   strokeCircle: function() {
 
   },
-  drawCircle: function() {
-
+  drawCircle: function(centerX, centerY, radius) {
+    this._ctx.beginPath();
+    this._ctx.arc(centerX, centerY, radius, 0, PI2);
+    this._ctx.closePath();
   },
   lineTo: function(x, y) {
     this._ctx.lineTo(x * this.unitX, y * this.unitY);
@@ -78,7 +80,7 @@ Class.partial(JContext, {
       this._ctx.moveTo(ps[i].x * ux, ps[i].y * uy);
     }
   },
-  drawLine: function(x1, y1, x2, y2) {
+  strokeLine: function(x1, y1, x2, y2) {
     var ux = this.unitX;
     var uy = this.unitY;
     this._ctx.beginPath();
@@ -119,8 +121,11 @@ Class.partial(JContext, {
   drawPie: function() {
 
   },
-  drawBezier: function(p1, p2) {
-    var points = _.isArray(p1) ? p1 : p2;
+  /**
+   * 绘制穿过这些点的贝塞尔曲线。
+   * points是要穿过的点，而不是控制点。
+   */
+  strokeFreeBezier: function(points) {
     var ctx = this._ctx;
     var len = points.length - 1;
     var ux = this.unitX;

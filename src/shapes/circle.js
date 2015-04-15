@@ -1,16 +1,22 @@
 var _ = require('../util/util.js');
 var BaseShape = require('../base/shape.js');
 var Class = require('j-oo');
+var JPoint = require('../base/point.js');
 
-module.exports = Class(function CircleShape(centerX, centerY, radius) {
-  this.base();
-  this.x1 = x1;
-  this.y1 = y1;
-  this.x2 = x2;
-  this.y2 = y2;
+module.exports = Class(function CircleShape(centerX, centerY, radius, options) {
+  options.points = [new JPoint(centerX, centerY)];
+  this.radius = radius;
+  this.base(options);
 }, {
   _doRender: function(ctx) {
-    ctx.drawLine(this.x1, this.y1, this.x2, this.y2);
+    var ps = this.points;
+    ctx.drawCircle(ps[0].x, ps[0].y, this.radius);
+    if (this.strokeStyle) {
+      ctx.stroke();
+    }
+    if (this.fillStyle) {
+      ctx.fill();
+    }
   }
 }, BaseShape);
 

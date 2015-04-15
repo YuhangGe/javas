@@ -4,7 +4,6 @@ module.exports = ShapeList;
 
 function ListNode(value, previous, next) {
   this.value = value;
-  this.animationList = [];
   this.previous = previous ? previous : null;
   this.next = next ? next : null;
 }

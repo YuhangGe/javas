@@ -12,7 +12,8 @@ var Javas = {
   FreeLine: require('./shapes/freeline.js'),
   Ellipse: require('./shapes/ellipse.js'),
   Bezier: require('./shapes/bezier.js'),
-  FreeBezier: require('./shapes/freebezier.js')
+  FreeBezier: require('./shapes/freebezier.js'),
+  FlamingTree: require('./flaming/basictree.js')
 };
 module.exports = Javas;
 

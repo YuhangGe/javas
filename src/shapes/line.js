@@ -1,16 +1,14 @@
 var _ = require('../util/util.js');
 var BaseShape = require('../base/shape.js');
 var Class = require('j-oo');
+var JPoint = require('../base/point.js');
 
-module.exports = Class(function LineShape(x1, y1, x2, y2) {
-  this.base();
-  this.x1 = x1;
-  this.y1 = y1;
-  this.x2 = x2;
-  this.y2 = y2;
+module.exports = Class(function LineShape(x1, y1, x2, y2, options) {
+  this.base([new JPoint(x1, y1), new JPoint(x2, y2)], options);
 }, {
   _doRender: function(ctx) {
-    ctx.drawLine(this.x1, this.y1, this.x2, this.y2);
+    var ps = this.points;
+    ctx.strokeLine(ps[0].x, ps[0].y, ps[1].x, ps[1].y);
   }
 }, BaseShape);
 
