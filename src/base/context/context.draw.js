@@ -64,6 +64,14 @@ Class.partial(JContext, {
   strokeCircle: function() {
 
   },
+  fillText: function(text, x, y, maxWidth) {
+    //fillText函数如果maxWidth = undefined，不能正确绘制。
+    if (maxWidth) {
+      this._ctx.fillText(text, x, y, maxWidth);
+    } else {
+      this._ctx.fillText(text, x, y);
+    }
+  },
   drawCircle: function(centerX, centerY, radius) {
     this._ctx.beginPath();
     this._ctx.arc(centerX, centerY, radius, 0, PI2);

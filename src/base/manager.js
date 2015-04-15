@@ -4,7 +4,13 @@ var ShapeList = require('./list.js');
 var JCavnas = require('./canvas.js');
 var Class = require('j-oo');
 var JAnimation = require('./animation.js');
+var JColor = require('../color/color.js');
 
+/**
+ * 默认的参数。
+ * FPS：期待的FPS，最大值由浏览器决定。（通常是130左右）
+ *
+ */
 var defaultOptions = {
   FPS: 80,
   unitX: 1.0,
@@ -36,7 +42,10 @@ module.exports = Class(function Manager(target, options) {
   //this.loopConfigTime = Config.loopIntervalTime;
   //this.loopHalfConfigTime = Math.floor(Config.loopIntervalTime / 2);
 
-  this.loopRunning = false;
+  this._loopRunning = false;
+  this._fps_show = Config.showFPS;
+  this._fps_time = 0;
+  this._fps_count = 0;
 
   this.shapeList = new ShapeList();
   this._animationList = [];
@@ -60,6 +69,22 @@ module.exports = Class(function Manager(target, options) {
   this._loopStart();
 
 }, {
+  loopRunning: {
+    get: function() {
+      return this._loopRunning;
+    },
+    set: function(val) {
+      if (this._loopRunning === val) {
+        return;
+      }
+      this._loopRunning = val;
+      if (val) {
+        this._fps_time = _.now();
+        this._fps_count = 0;
+        this._loopStart();
+      }
+    }
+  },
   width: {
     get: function() {
       return this.canvas.width;
@@ -154,6 +179,9 @@ module.exports = Class(function Manager(target, options) {
       w_arr.push(ani);
     } else if (startTime === now) {
       ani.start(now);
+    } else {
+      ani.state = 'delay';
+      ani.startTime = startTime;
     }
     return ani.id;
   },
@@ -166,29 +194,56 @@ module.exports = Class(function Manager(target, options) {
     ctx.save();
     ctx.scale(this.scaleX, this.scaleY);
     ctx.translate(this.offsetX, this.offsetY);
+    this._paintShapes(ctx);
+    this._paintFPS(ctx, _.now());
+    ctx.restore();
+  },
+  _paintShapes: function(ctx) {
+    var paused = true;
     this.shapeList.forEach(function(shape) {
-      if (shape.state !== 'wait') {
+
+      if (shape.state === 'run' || shape.state === 'stable') {
         ctx.save();
-        //_.log('do render');
         shape.render(ctx);
         ctx.restore();
       }
+
+      if(paused && shape.state !== 'stable') {
+        paused = false;
+      }
     });
-    ctx.restore();
+    /*
+     * 如果没有动画并且所有元素都达到了稳定状态，则可以不再重复绘制。
+     */
+    this.loopRunning = this._animationList.length > 0 || !paused;
+  },
+  _paintFPS: function(ctx, nowTime) {
+    if (!this._fps_show) {
+      return;
+    }
+    ctx.fillStyle = JColor.CHOCOLATE;
+    ctx.font = '15px Arial';
+    ctx.textBaseline = 'top';
+    ctx.textAlign = 'left';
+    var info = 'FPS: stop';
+    if (this._loopRunning) {
+      info = 'FPS: ' + (this._fps_count / (nowTime - this._fps_time) * 1000).toFixed(2);
+    }
+    ctx.fillText(info, 10, 10);
   },
   _loopHandler: function () {
-    var curTime = window.performance.now();
+    var curTime = _.now();
     if (curTime >= this.loopNextIntervalTime) {
-      if (this.loopRunning) {
-        this._loopRender(curTime);
-      }
+      this._loopRender(curTime);
+      this._fps_count++;
       this.loopNextIntervalTime += this.loopIntervalTime;
     }
-    requestAnimationFrame(this.loopDelegate);
+    if (this._loopRunning) {
+      requestAnimationFrame(this.loopDelegate);
+    }
   },
   _loopRender: function (curTime) {
     //_.log('loop render:', curTime);
-    var paused = true;
     var ctx = this.context;
     var aniNotifyMap = this._aniNotifyMap;
 
@@ -229,28 +284,21 @@ module.exports = Class(function Manager(target, options) {
       this._animationList.length = 0;
     }
 
-    this.shapeList.forEach(function(shape) {
-
-      if (shape.state !== 'wait') {
-        ctx.save();
-        shape.render(ctx);
-        ctx.restore();
-      }
-
-      if(paused && shape.state !== 'stable') {
-        paused = false;
-      }
-    });
     /*
-     * 如果所有元素都达到了稳定状态，则可以不再重复绘制。
+     * 绘制图形
      */
-    this.loopRunning = !paused;
+    this._paintShapes(ctx);
+
+    /*
+     * 绘制FPS信息。放在最后绘制，保证绘制在最顶部。
+     */
+    this._paintFPS(ctx, curTime);
 
     ctx.restore();
   },
 
   _loopStart: function () {
-    this.loopStartTime = window.performance.now();
+    this.loopStartTime = this._fps_time = _.now();
     this.loopNextIntervalTime = this.loopStartTime + this.loopIntervalTime;
     /*
      * 开始主循环。

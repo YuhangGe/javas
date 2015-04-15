@@ -22,7 +22,32 @@ module.exports = Class(function JContext(jcanvas) {
 
   this.unitX = 1;
   this.unitY = 1;
+
 }, {
+  font: {
+    get: function() {
+      return this._ctx.font;
+    },
+    set: function(val) {
+      this._ctx.font = val;
+    }
+  },
+  textBaseline: {
+    get: function() {
+      return this._ctx.textBaseline;
+    },
+    set: function(val) {
+      this._ctx.textBaseline = val;
+    }
+  },
+  textAlign: {
+    get: function() {
+      return this._ctx.textAlign;
+    },
+    set: function(val) {
+      this._ctx.textAlign = val;
+    }
+  },
   lineWidth: {
     get: function() {
       return this._ctx.lineWidth;

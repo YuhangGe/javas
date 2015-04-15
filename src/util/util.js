@@ -117,6 +117,12 @@ function walkMergeOptions(src, dst) {
 }
 
 $extend(Utility, {
+  now: function() {
+    return window.performance.now();
+  },
+  requestAFrame: function(fn) {
+    window.requestAnimationFrame(fn);
+  },
   warn: function() {
     console.warn.apply(console, arguments);
     if (Config.debug) {

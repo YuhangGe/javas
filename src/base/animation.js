@@ -32,6 +32,7 @@ module.exports = Class(function JAnimation(options) {
         target.toValue = target.shape[target.property];
       }
       target.shape.runningAnimationCount++;
+      target.shape[target.property] = target.fromValue;
     });
     this.state = 'run';
     this.startTime = curTime;
