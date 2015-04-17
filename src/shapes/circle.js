@@ -4,10 +4,15 @@ var Class = require('j-oo');
 var JPoint = require('../base/point.js');
 
 module.exports = Class(function CircleShape(centerX, centerY, radius, options) {
-  options.points = [new JPoint(centerX, centerY)];
+  this.base([new JPoint(0, 0)], options);
   this.radius = radius;
-  this.base(options);
+  this.setPosition(centerX, centerY);
 }, {
+  setPosition: function(centerX, centerY) {
+    var ps = this.points;
+    ps[0].x = centerX;
+    ps[0].y = centerY;
+  },
   _doRender: function(ctx) {
     var ps = this.points;
     ctx.drawCircle(ps[0].x, ps[0].y, this.radius);

@@ -1,61 +1,92 @@
 var Class = require('j-oo');
 var BaseShape = require('../base/shape.js');
 var TextShape = require('./simpletext.js');
-var FreeBezierShape = require('../shapes/freebezier.js');
+var BezierShape = require('../shapes/bezier.js');
 var JPoint = require('../base/point.js');
 var CircleShape = require('../shapes/circle.js');
+var RectShape = require('../shapes/rect.js');
+
+var DOT_RADIUS = 8;
+var ITEM_WIDTH = 170;
+var ITEM_HEIGHT = 35;
+var TRACE_WIDTH = 90;
+var TRACE_HEIGHT = 90;
+var TRACE_LINE_WIDTH = 8;
+var PADDING = 20;
 
 var RootTreeNode  = Class(function RootTreeNode(centerX, centerY, options) {
   this.base([new JPoint(0, 0)], options);
 
   this.text = new TextShape(0, 0, {
-    width: 100,
-    height: 30,
-    text: options.text,
-    fillStyle: '#F3F5F7'
+    baseline: 'middle',
+    align: 'center',
+    fillStyle: '#707070',
+    fontSize: 13,
+    fontFamily: 'Microsoft Yahei',
+    text: options.text
   });
-  this.dot = new CircleShape(centerX, centerY, 20, {
+  this.rect = new RectShape(0, 0, ITEM_WIDTH, ITEM_HEIGHT, {
+    radius: ITEM_HEIGHT / 2,
+    fillStyle: '#b4e9fc'
+  });
+
+  this.dot = new CircleShape(0, 0, DOT_RADIUS, {
     fillStyle: '#00C8FE'
   });
 
-  this.leftTrace = new FreeBezierShape(JPoint.createArray(4), {
+  this.leftTrace = new BezierShape(JPoint.create(4), {
     parent: this,
-    strokeStyle: '#f6f6f6'
+    strokeStyle: '#f6f6f6',
+    lineWidth: TRACE_LINE_WIDTH
   });
-  this.rightTrace = new FreeBezierShape(JPoint.createArray(4), {
+  this.rightTrace = new BezierShape(JPoint.create(4), {
     parent: this,
-    strokeStyle: '#f6f6f6'
+    strokeStyle: '#f6f6f6',
+    lineWidth: TRACE_LINE_WIDTH
   });
 
-  this.leftNode = null;
-  this.rightNode = null;
+  this.left = null;
+  this.right = null;
 
   this._expand = false;
 
+  /*
+   * initialize
+   */
   this.setPosition(centerX, centerY);
-
+  this.expand = options.expand !== false;
 }, {
-  setPosition: function(centerX, centerY) {
-    var ps = this.points;
-    var cx = this.centerX;
-    var cy = this.centerY;
+  _setTracePoints: function(x, y) {
     var l_ps = this.leftTrace.points;
     var r_ps = this.rightTrace.points;
-    var TRACE_X = 100;
-    var TRACE_Y = 80;
 
-    ps[0].x = centerX;
-    ps[0].y = centerY;
+    r_ps[0].x = x;
+    r_ps[0].y = y;
+    r_ps[1].x = x + TRACE_WIDTH * 0.4;
+    r_ps[1].y = y + TRACE_HEIGHT * 0.6;
+    r_ps[2].x = x + TRACE_WIDTH * 0.8;
+    r_ps[2].y = y + TRACE_HEIGHT * 0.4;
+    r_ps[3].x = x + TRACE_WIDTH;
+    r_ps[3].y = y + TRACE_HEIGHT;
 
-    r_ps[0].x = centerX;
-    r_ps[0].y = centerY;
-    r_ps[2].x = centerX + TRACE_X;
-    r_ps[2].y = centerY + TRACE_Y;
-    r_ps[1].x = centerX + TRACE_X * 0.5;
-    r_ps[1].y = centerY + TRACE_Y * 0.5;
+    l_ps[0].x = x;
+    l_ps[0].y = y;
+    l_ps[1].x = x - TRACE_WIDTH * 0.4;
+    l_ps[1].y = y + TRACE_HEIGHT * 0.6;
+    l_ps[2].x = x - TRACE_WIDTH * 0.8;
+    l_ps[2].y = y + TRACE_HEIGHT * 0.4;
+    l_ps[3].x = x - TRACE_WIDTH;
+    l_ps[3].y = y + TRACE_HEIGHT;
 
-
-
+  },
+  setPosition: function(x, y) {
+    var ps = this.points;
+    ps[0].x = x;
+    ps[0].y = y;
+    this.dot.setPosition(x, y);
+    this.rect.setPosition(x - ITEM_WIDTH / 2, y - ITEM_HEIGHT * 1.5);
+    this.text.setPosition(x, y - ITEM_HEIGHT);
+    this._setTracePoints(x, y);
   },
   expand: {
     get: function() {
@@ -63,66 +94,113 @@ var RootTreeNode  = Class(function RootTreeNode(centerX, centerY, options) {
     },
     set: function(val) {
       this._expand = val;
-      this.leftNode.state = val ? 'stable' : 'wait';
-      this.rightNode.state = val ? 'stable' : 'wait';
+      if (this.left) {
+        this.left.state = val ? 'stable' : 'wait';
+      }
+      if (this.right) {
+        this.right.state = val ? 'stable' : 'wait';
+      }
     }
   },
-  onRender: function(ctx) {
+  addLeft: function(left) {
+    this.left = left;
+  },
+  addRight: function(right) {
+    this.right = right;
+  },
+  render: function(ctx) {
     if (this.state === 'wait') {
       return;
     }
-    this._onRender(ctx);
-    if (this.leftNode) {
-      this.leftNode.onRender(ctx);
+    this._doRender(ctx);
+    if (this._expand && this.left) {
+      this.left.render(ctx);
     }
-    if (this.rightNode) {
-      this.rightNode.onRender(ctx);
+    if (this._expand && this.right) {
+      this.right.render(ctx);
     }
   },
   _doRender: function(ctx) {
 
-    //draw traces
-    this.leftTrace.render(ctx);
-    //draw children
+    if (this._expand && this.left) {
+      this.leftTrace.render(ctx);
+    }
+    if (this._expand && this.right) {
+      this.rightTrace.render(ctx);
+    }
 
-    //draw text
-
-    //draw dot
+    this.rect.render(ctx);
+    this.text.render(ctx);
+    this.dot.render(ctx);
   }
 }, BaseShape);
 
-var TreeNode = Class(function TreeNode() {
+var LeftTreeNode = Class(function LeftTreeNode(x, y, options) {
+  this.base(x, y, options);
+
+  this.rect.fillStyle = '#f3f5f7';
+  this.rect.strokeStyle = '#efefef';
 
 }, {
+  setPosition: function(x, y) {
+    var ps = this.points;
+    ps[0].x = x;
+    ps[0].y = y;
+    this.dot.setPosition(x - ITEM_WIDTH + PADDING * 2, y);
+    this.rect.setPosition(x - ITEM_WIDTH + PADDING, y - ITEM_HEIGHT / 2);
+    this.text.setPosition(x - ITEM_WIDTH / 2 + PADDING, y);
+    this._setTracePoints(x - ITEM_WIDTH + PADDING * 2, y);
+  }
+}, RootTreeNode);
 
+var RightTreeNode = Class(function RightTreeNode(x, y, options) {
+  this.base(x, y, options);
+  this.rect.fillStyle = '#f3f5f7';
+  this.rect.strokeStyle = '#efefef';
+}, {
+  setPosition: function(x, y) {
+    var ps = this.points;
+    ps[0].x = x;
+    ps[0].y = y;
+    this.dot.setPosition(x + ITEM_WIDTH - 2 * PADDING, y);
+    this.rect.setPosition(x - PADDING, y - ITEM_HEIGHT / 2);
+    this.text.setPosition(x + ITEM_WIDTH / 2 - PADDING, y);
+    this._setTracePoints(x + ITEM_WIDTH - PADDING * 2, y);
+  }
 }, RootTreeNode);
 
 module.exports = Class(function BasicTree(topX, topY, treeData) {
-  this.rootNode = new RootTreeNode(topX, topY, {
-    text: treeData.title
+  this.base([], {});
+
+  this.root = new RootTreeNode(topX, topY, {
+    text: treeData.text
   });
 
   function walk(node, parentShape) {
-    var shape;
-    if (node.leftNode) {
-      shape = new TreeNode({
-        text: node.leftNode.title,
-        parent: parentShape
+    var shape, ps;
+    if (node.left) {
+      ps = parentShape.leftTrace.points;
+      shape = new LeftTreeNode(ps[3].x, ps[3].y, {
+        text: node.left.text,
+        parent: parentShape,
+        expand: node.left.expand
       });
-      parentShape.addLeftChild(shape);
-      walk(node.leftNode, shape);
+      parentShape.addLeft(shape);
+      walk(node.left, shape);
     }
-    if (node.rightNode) {
-      shape = new TreeNode({
-        text: node.rightNode.title,
-        parent: parentShape
+    if (node.right) {
+      ps = parentShape.rightTrace.points;
+      shape = new RightTreeNode(ps[3].x, ps[3].y, {
+        text: node.right.text,
+        parent: parentShape,
+        expand: node.right.expand
       });
-      parentShape.addRightChild(shape);
-      walk(node.rightNode, shape);
+      parentShape.addRight(shape);
+      walk(node.right, shape);
     }
   }
 
-  walk(treeData, this.rootNode);
+  walk(treeData, this.root);
 
 }, {
   render: function(ctx) {

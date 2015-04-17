@@ -6,7 +6,7 @@ var JPoint = require('../base/point.js');
 module.exports = Class(function FreeBezierShape(points, options) {
   this.base(points, options);
 }, {
-  _onRender: function(ctx) {
+  _doRender: function(ctx) {
     ctx.strokeFreeBezier(this.points);
   }
 }, BaseShape);

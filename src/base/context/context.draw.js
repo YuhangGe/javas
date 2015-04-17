@@ -9,6 +9,9 @@ Class.partial(JContext, {
   moveTo: function(x, y) {
     this._ctx.moveTo(x * this.unitX, y * this.unitY);
   },
+  moveToPoint: function(p) {
+    this.moveTo(p.x, p.y);
+  },
   arcTo: function(x0, y0, x1, y1, radius) {
     var ux = this.unitX;
     var uy = this.unitY;
@@ -80,12 +83,15 @@ Class.partial(JContext, {
   lineTo: function(x, y) {
     this._ctx.lineTo(x * this.unitX, y * this.unitY);
   },
-  lineToByPoints: function(p1, p2) {
+  lineToPoint: function(p) {
+    this.lineTo(p.x, p.y);
+  },
+  lineToByPoints: function(points) {
     var ux = this.unitX;
     var uy = this.unitY;
-    var ps = _.isArray(p1) ? p1 : arguments;
-    for (var i = 0; i < ps.length; i++) {
-      this._ctx.moveTo(ps[i].x * ux, ps[i].y * uy);
+    this._ctx.moveTo(points[0].x * ux, points[0].y * uy);
+    for (var i = 1; i < points.length; i++) {
+      this._ctx.lineTo(points[i].x * ux, points[i].y * uy);
     }
   },
   strokeLine: function(x1, y1, x2, y2) {
@@ -148,6 +154,7 @@ Class.partial(JContext, {
       dx = (points[i].x + points[i + 1].x) / 2;
       dy = (points[i].y + points[i + 1].y) / 2;
       ctx.quadraticCurveTo(cx * ux, cy * uy, dx * ux, dy * uy);
+      //ctx.lineTo(points[i+1].x, points[i+1].y);
       cx = dx;
       cy = dy;
     }
@@ -156,5 +163,13 @@ Class.partial(JContext, {
     ctx.quadraticCurveTo(cx * ux, cy * uy, dx * ux, dy * uy);
     ctx.stroke();
     ctx.closePath();
+  },
+  bezierCurveTo: function(cp1x, cp1y, cp2x, cp2y, x, y) {
+    var ux = this.unitX;
+    var uy = this.unitY;
+    this._ctx.bezierCurveTo(cp1x * ux, cp1y * uy, cp2x * ux, cp2y * uy, x * ux, y * uy);
+  },
+  bezierCurveToPoint: function(cp1, cp2, dest) {
+    this.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, dest.x, dest.y);
   }
 });

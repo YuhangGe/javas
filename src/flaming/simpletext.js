@@ -2,38 +2,27 @@ var Class = require('j-oo');
 var BaseShape = require('../base/shape.js');
 var JPoint = require('../base/point.js');
 
-module.exports = Class(function BasicTextShape(centerX, centerY, parent, options) {
-  this.base(JPoint.createArray(5), parent);
-  this._text = text;
+module.exports = Class(function BasicTextShape(x, y, options) {
+  this.base([new JPoint(0, 0)], options);
+  this._text = options.text ? options.text : '';
   this._font = '';
   this._fontSize = options.fontSize ? options.fontSize : 13;
-  this._fontFamily = options.fontFamily ? options.fontFamily : 'Microsoft Yahei';
-
-  this.width = options.width ? options.width : 0;
-  this.height = options.height ? options.height : 0;
+  this._fontFamily = options.fontFamily ? options.fontFamily : 'Arial';
+  this._align = options.align ? options.align : 'left';
+  this._baseline = options.baseline ? options.baseline : 'baseline';
 
   this._getFont();
 
-  this.setPosition(centerX, centerY);
+  this.setPosition(x, y);
 
 }, {
   _getFont: function() {
     this._font = this._fontSize + 'px ' + this._fontFamily;
   },
-  setPosition: function(centerX, centerY) {
+  setPosition: function(x, y) {
     var ps = this.points;
-    var hw = this.width / 2;
-    var hh = this.height / 2;
-    ps[4].x = centerX;
-    ps[4].y = centerY;
-    ps[0].x = centerX - hw;
-    ps[0].y = centerY - hh;
-    ps[1].x = centerX + hw;
-    ps[1].y = centerY - hh;
-    ps[2].x = centerX + hw;
-    ps[2].y = centerY + hh;
-    ps[3].x = centerX - hw;
-    ps[3].y = centerY + hh;
+    ps[0].x = x;
+    ps[0].y = y;
   },
   text: {
     get: function() {
@@ -49,25 +38,35 @@ module.exports = Class(function BasicTextShape(centerX, centerY, parent, options
     }
   },
   fontSize: {
+    get: function() {
 
+    },
+    set: function() {
+
+    }
   },
   fontFamily: {
+    get: function() {
 
+    },
+    set: function() {
+
+    }
   },
   _doRender: function(ctx) {
-    var ps = this.points;
-    ctx.beginPath();
-    ctx.moveTo(ps[0].x, ps[0].y);
-    ctx.arc(ps[1].x, (ps[1].y + ps[2].y) / 2, this.height / 2, 0, Math.PI);
-    ctx.arc(ps[0].x, (ps[0].y + ps[3].y) / 2, this.height / 2, Math.PI, Math.PI * 2);
-    ctx.closePath();
-    if (this.fillStyle) {
-      ctx.fill();
+    var x = this.points[0].x;
+    var y = this.points[0].y;
+    ctx.textAlign = this._align;
+    ctx.textBaseline = this._baseline;
+    ctx.font = this._font;
+    if (this._fillStyle) {
+      ctx.fillStyle = this._fillStyle;
+      ctx.fillText(this._text, x, y);
     }
-    if (this.strokeStyle) {
-      ctx.stroke();
+    if (this._strokeStyle) {
+      ctx.strokeStyle = this._strokeStyle;
+      ctx.strokeText(this._text, x, y);
     }
-
   }
 
 }, BaseShape);
