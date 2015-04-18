@@ -47,14 +47,21 @@ Class.partial(Manager, function() {
     this._paintFPS(ctx, _.now());
     ctx.restore();
   },
-  _paintShapes: function(ctx) {
+  _paintShapes: function() {
     var paused = true;
+    var ctx = this.context;
+    var ectx = this._econtext;
+
     this.shapeList.forEach(function(shape) {
 
       if (shape.state === 'run' || shape.state === 'stable') {
         ctx.save();
         shape.render(ctx);
         ctx.restore();
+
+        if (shape._needEventEmit) {
+          shape.renderToChoose(ectx);
+        }
       }
 
       if(paused && shape.state !== 'stable') {

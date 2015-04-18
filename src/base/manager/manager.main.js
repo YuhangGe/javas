@@ -3,7 +3,7 @@ var ShapeList = require('../struct/list.js');
 var JCavnas = require('../canvas.js');
 var Class = require('j-oo');
 var JAnimation = require('../animation.js');
-
+var JColor = require('../../color/color.js');
 /**
  * 默认的参数。
  * FPS：期待的FPS，最大值由浏览器决定。（通常是130左右）
@@ -19,6 +19,10 @@ var defaultOptions = {
   scaleY: 1.0
 };
 
+function rgb2str(data) {
+  return 'rgb(' + data[0] + ',' + data[1] + ',' + data[2] + ')';
+}
+
 module.exports = Class(function Manager(target, options) {
 
   options = _.mergeOptions(options, defaultOptions);
@@ -32,6 +36,8 @@ module.exports = Class(function Manager(target, options) {
    */
   this.canvas = new JCavnas(target);
   this.context = this.canvas.context;
+  this._ecanvas = new JCavnas(document.createElement('canvas'));
+  this._econtext = this._ecanvas.getContext('2d');
 
   this.shapeList = new ShapeList();
   this._animationList = [];
@@ -49,16 +55,23 @@ module.exports = Class(function Manager(target, options) {
   this.scaleX = options.scaleX;
   this.scaleY = options.scaleY;
 
-
+  this._chooseColor = new Uint8Array(4);
+  this._chooseMap = new Map();
 
 }, {
-
+  _nextChooseColor: function() {
+    var cc = this._chooseColor;
+    cc[3] = (cc[3] + 1) % 3;
+    cc[cc[3]]++;
+    return rgb2str(cc);
+  },
   width: {
     get: function() {
       return this.canvas.width;
     },
     set: function(width) {
       this.canvas.width = width;
+      this._ecanvas.width = width;
     }
   },
   height: {
@@ -67,6 +80,7 @@ module.exports = Class(function Manager(target, options) {
     },
     set: function(height) {
       this.canvas.height = height;
+      this._ecanvas.height = height;
     }
   },
   unitX: {
@@ -75,6 +89,7 @@ module.exports = Class(function Manager(target, options) {
     },
     set: function(val) {
       this.context.unitX = val;
+      this._econtext.unitX = val;
     }
   },
   unitY: {
@@ -83,14 +98,7 @@ module.exports = Class(function Manager(target, options) {
     },
     set: function(val) {
       this.context.unitY = val;
-    }
-  },
-  unitS: {
-    get: function() {
-      return this.context.unitS;
-    },
-    set: function(val) {
-      this.context.unitS = val;
+      this._econtext.unitY = val;
     }
   },
   resize: function (width, height) {
@@ -109,9 +117,23 @@ module.exports = Class(function Manager(target, options) {
     } else {
       this.shapeList.add(shape, zIndex);
     }
+    var chooseColor = this._nextChooseColor();
+    shape._chooseColor = new JColor(chooseColor);
+    this._chooseMap.set(chooseColor, shape);
+
     this.loopRunning = true; //通知重绘（如果已经停止）
     // 返回自身，方便链式调用
     return this;
+  },
+  _chooseShape: function(x, y) {
+    var dt = this._econtext.getImageData(x, y, 1, 1);
+    var cd = dt.data;
+    var k;
+    if (cd[3] === 255 && this._chooseMap.has((k = rgb2str(cd)))) {
+      return this._chooseShape.get(k);
+    } else {
+      return null;
+    }
   },
   addAnimation: function(animation) {
     var now = window.performance.now();

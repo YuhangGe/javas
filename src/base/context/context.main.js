@@ -128,5 +128,8 @@ module.exports = Class(function JContext(jcanvas) {
   },
   restore: function() {
     this._ctx.restore();
+  },
+  getImageData: function(x, y, w, h) {
+    return this._ctx.getImageData(x, y, w, h);
   }
 });

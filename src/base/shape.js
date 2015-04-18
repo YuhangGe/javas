@@ -9,6 +9,8 @@ module.exports = Class(function BaseShape(points, options) {
   _.assert(options);
 
   this.id = _.uid();
+  this._chooseColor = '#000';
+
   this.state = options.state ? options.state : 'stable'; // wait, run, stable
   this._rac = 0; //running animation count;
   this.parent = options.parent ? options.parent : null;
@@ -28,10 +30,7 @@ module.exports = Class(function BaseShape(points, options) {
 
   this._spbr = options.setPropertyBeforeRender !== false;
   this._eventMap = new Map();
-  /*
-   * 这个参数会在Manager.addShape时设置，指向Manager的引用。
-   */
-  this._javasManager = null;
+  this._needEventEmit = false;
 
 }, {
   strokeStyle: {
@@ -62,7 +61,7 @@ module.exports = Class(function BaseShape(points, options) {
       }
     }
   },
-  addEventListener: function(eventName, handler) {
+  on: function(eventName, handler) {
     var em = this._eventMap;
     var e_array = em.get(eventName);
     if (!e_array) {
@@ -72,10 +71,31 @@ module.exports = Class(function BaseShape(points, options) {
     if (e_array.indexOf(handler) < 0) {
       e_array.push(handler);
     }
-    this._javasManager.registerShapeEvent(this, eventName); //向Manager注册事件监听。
+    this._needEventEmit = true;
   },
-  _onEventFire: function(eventName, jEvent) {
-
+  off: function(eventName, handler) {
+    //todo
+  },
+  _emit: function(eventName, jEvent) {
+    var me = this;
+    this._eventMap.get(eventName).forEach(function(handler) {
+      handler.call(me, jEvent);
+    });
+  },
+  onMouseMove: function(event) {
+    this._emit('mousemove', event);
+  },
+  onMouseDown: function(event) {
+    this._emit('mousedown', event);
+  },
+  onMouseEnter: function(event) {
+    this._emit('mouseenter', event);
+  },
+  onMouseLeave: function(event) {
+    this._emit('mouseleave', event);
+  },
+  onMouseUp: function(event) {
+    this._emit('mouseup', event);
   },
   runningAnimationCount: {
     get: function() {
@@ -116,5 +136,10 @@ module.exports = Class(function BaseShape(points, options) {
       }
     }
     this._doRender(ctx);
+  },
+  renderToChoose: function(ectx) {
+    ectx.strokeStyle = this._chooseColor;
+    ectx.fillStyle = this._chooseColor;
+    this._doRender(ectx);
   }
 });
