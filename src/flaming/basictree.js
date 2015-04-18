@@ -2,7 +2,7 @@ var Class = require('j-oo');
 var BaseShape = require('../base/shape.js');
 var TextShape = require('./simpletext.js');
 var BezierShape = require('../shapes/bezier.js');
-var JPoint = require('../base/point.js');
+var JPoint = require('../base/struct/point.js');
 var CircleShape = require('../shapes/circle.js');
 var RectShape = require('../shapes/rect.js');
 

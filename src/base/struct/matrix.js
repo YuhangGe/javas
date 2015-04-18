@@ -1,5 +1,5 @@
 var Class = require('j-oo');
-var _ = require('../util/util.js');
+var _ = require('../../util/util.js');
 
 module.exports = Class(function JMatrix(m) {
   this.m = _.isUndefined(m)

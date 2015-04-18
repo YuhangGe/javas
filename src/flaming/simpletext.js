@@ -1,6 +1,6 @@
 var Class = require('j-oo');
 var BaseShape = require('../base/shape.js');
-var JPoint = require('../base/point.js');
+var JPoint = require('../base/struct/point.js');
 
 module.exports = Class(function BasicTextShape(x, y, options) {
   this.base([new JPoint(0, 0)], options);

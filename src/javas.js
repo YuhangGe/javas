@@ -1,4 +1,4 @@
-var Manager = require('./base/manager.js');
+var Manager = require('./base/manager/manager.js');
 var _ = require('./util/util.js');
 var Config = require('./util/conf.js');
 

@@ -5,8 +5,6 @@
  */
 
 var levelIndexes = [];
-var levelTmpLeft;
-var levelTmpRight;
 var MIN_MARGIN = 40;
 var LEVEL_MARGIN = 90;
 
@@ -94,18 +92,10 @@ function walkAbsolute(chs, px, py) {
 function layout(treeRoot) {
   levelIndexes.length = 0;
   walkLevel(treeRoot, 0);
-  levelTmpLeft = new Float32Array(levelIndexes.length);
-  levelTmpRight = new Float32Array(levelIndexes.length);
-
   walkRelative();
   walkAbsolute(treeRoot.children, treeRoot.p.x, treeRoot.p.y);
 
   console.log(treeRoot);
-  /*
-   *
-   */
-  //levelTmpLeft = null;
-  //levelTmpRight = null;
 
 }
 

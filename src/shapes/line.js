@@ -1,7 +1,7 @@
 var _ = require('../util/util.js');
 var BaseShape = require('../base/shape.js');
 var Class = require('j-oo');
-var JPoint = require('../base/point.js');
+var JPoint = require('../base/struct/point.js');
 
 module.exports = Class(function LineShape(x1, y1, x2, y2, options) {
   this.base([new JPoint(x1, y1), new JPoint(x2, y2)], options);

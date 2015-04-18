@@ -1,7 +1,7 @@
 var _ = require('../util/util.js');
 var BaseShape = require('../base/shape.js');
 var Class = require('j-oo');
-var JPoint = require('../base/point.js');
+var JPoint = require('../base/struct/point.js');
 
 var PI = Math.PI;
 var PI2 = Math.PI * 2;

@@ -1,6 +1,6 @@
 var _ = require('../util/util.js');
 var Class = require('j-oo');
-var JContext = require('./context.js');
+var JContext = require('./context/context.js');
 module.exports = Class(function JCanvas(originCanvas) {
   this._originCanvas = originCanvas;
   this._context2d = null;

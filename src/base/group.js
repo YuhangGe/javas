@@ -1,5 +1,5 @@
 var _ = require('../util/util.js');
-var ShapeList = require('./list.js');
+var ShapeList = require('./struct/list.js');
 var BaseShape = require('./shape.js');
 
 module.exports = GroupShape;

@@ -1,4 +1,4 @@
-var _ = require('../util/util.js');
+var _ = require('../../util/util.js');
 
 module.exports = ShapeList;
 

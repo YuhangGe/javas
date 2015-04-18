@@ -1,7 +1,7 @@
 var _ = require('../util/util.js');
 var Class = require('j-oo');
 var baseOptions = require('./option.js');
-var ShapeList = require('./list.js');
+var ShapeList = require('./struct/list.js');
 var JColor = require('../color/color.js');
 
 module.exports = Class(function BaseShape(points, options) {

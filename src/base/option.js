@@ -1,17 +1,7 @@
 var JColor = require('./../color/color.js');
-var JMatrix = require('./matrix.js');
+var JMatrix = require('./struct/matrix.js');
 
 var defaultBaseOptions = {
-  //animate : { //如果animate为false, 则表示不动画
-  //  start: {
-  //    type: 'immediate', //'delay', 'notify', 'wait', 'after'
-  //
-  //  },
-  //  duration: {
-  //
-  //  }
-  //},
-  animate: false,
   zIndex: 'top', // 'bottom' / 2
   strokeStyle: JColor.BLACK,
   fillStyle: JColor.BLACK,
