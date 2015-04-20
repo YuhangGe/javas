@@ -50,19 +50,19 @@ Class.partial(Manager, function() {
     var x = event.offsetX;
     var y = event.offsetY;
     var shape = this._chooseShape(x, y);
-
+    //_.log(shape);
     if (shape) {
       if (shape === this._mOverShape) {
-        this._mOverShape.onMouseMove();
+        this._mOverShape._onMouseMove();
       } else if (!this._mOverShape) {
         shape._emit('mouseenter');
       } else {
-        this._mOverShape.onMouseLeave();
-        shape.onMouseEnter();
+        this._mOverShape._onMouseLeave();
+        shape._onMouseEnter();
       }
     } else {
       if (this._mOverShape) {
-        this._mOverShape.onMouseLeave();
+        this._mOverShape._onMouseLeave();
       }
     }
 
@@ -71,6 +71,11 @@ Class.partial(Manager, function() {
   },
   _mdHandler: function(event) {
     this._isMouseDown = true;
+    var x = event.offsetX;
+    var y = event.offsetY;
+    var shape = this._chooseShape(x, y);
+
+    _.log(shape);
 
     $.on(window, $.touchEvent.move, this._mvDelegate);
     $.on(window, $.touchEvent.up, this._muDelegate);

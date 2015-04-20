@@ -4,11 +4,7 @@ var JCavnas = require('../canvas.js');
 var Class = require('j-oo');
 var JAnimation = require('../animation.js');
 var JColor = require('../../color/color.js');
-/**
- * 默认的参数。
- * FPS：期待的FPS，最大值由浏览器决定。（通常是130左右）
- *
- */
+
 var defaultOptions = {
   FPS: 80,
   unitX: 1.0,
@@ -16,7 +12,10 @@ var defaultOptions = {
   offsetX: 1.0,
   offsetY: 1.0,
   scaleX: 1.0,
-  scaleY: 1.0
+  scaleY: 1.0,
+  lineJoin: 'round',
+  lineCap: 'round',
+  lineWidth: 3
 };
 
 function rgb2str(data) {
@@ -37,7 +36,9 @@ module.exports = Class(function Manager(target, options) {
   this.canvas = new JCavnas(target);
   this.context = this.canvas.context;
   this._ecanvas = new JCavnas(document.createElement('canvas'));
-  this._econtext = this._ecanvas.getContext('2d');
+  this._econtext = this._ecanvas.context;
+
+  //window.ttc = document.body.appendChild(this._ecanvas._originCanvas);
 
   this.shapeList = new ShapeList();
   this._animationList = [];
@@ -49,20 +50,28 @@ module.exports = Class(function Manager(target, options) {
 
   this.unitX = options.unitX;
   this.unitY = options.unitY;
-
+  this.lineJoin = options.lineJoin;
+  this.lineCap = options.lineCap;
+  this.lineWidth = options.lineWidth;
   this.offsetX = options.offsetX;
   this.offsetY = options.offsetY;
   this.scaleX = options.scaleX;
   this.scaleY = options.scaleY;
 
-  this._chooseColor = new Uint8Array(4);
+  this._chooseColor = new Uint8Array(3);
   this._chooseMap = new Map();
 
 }, {
-  _nextChooseColor: function() {
+  _nextChooseId: function() {
     var cc = this._chooseColor;
-    cc[3] = (cc[3] + 1) % 3;
-    cc[cc[3]]++;
+    function inc(idx, cc) {
+      cc[idx]++;
+      if (cc[idx] === 0xFF) {
+        inc(idx + 1);
+        cc[idx] = 0;
+      }
+    }
+    inc(0, cc);
     return rgb2str(cc);
   },
   width: {
@@ -117,26 +126,30 @@ module.exports = Class(function Manager(target, options) {
     } else {
       this.shapeList.add(shape, zIndex);
     }
-    var chooseColor = this._nextChooseColor();
-    shape._chooseColor = new JColor(chooseColor);
-    this._chooseMap.set(chooseColor, shape);
-
     this.loopRunning = true; //通知重绘（如果已经停止）
     // 返回自身，方便链式调用
     return this;
   },
+  registerEventShape: function(shape) {
+    _.assert(!shape._chooseId);
+    shape._chooseId = this._nextChooseId();
+    shape._chooseColor = new JColor(shape._chooseId);
+    this._chooseMap.set(shape._chooseId, shape);
+  },
   _chooseShape: function(x, y) {
     var dt = this._econtext.getImageData(x, y, 1, 1);
     var cd = dt.data;
+    //_.log(x, y);
+    //_.log(cd);
     var k;
     if (cd[3] === 255 && this._chooseMap.has((k = rgb2str(cd)))) {
-      return this._chooseShape.get(k);
+      return this._chooseMap.get(k);
     } else {
       return null;
     }
   },
   addAnimation: function(animation) {
-    var now = window.performance.now();
+    var now = _.now();
     var start = animation.start;
     var wait = false;
     var startTime;
@@ -154,6 +167,8 @@ module.exports = Class(function Manager(target, options) {
     } else {
       startTime = start + now;
     }
+    _.assert(animation.duration);
+    _.assert(animation.targets);
 
     var ani = new JAnimation({
       addTime: now,

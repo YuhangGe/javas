@@ -34,25 +34,31 @@ function $query(queryString) {
   return document.querySelector(queryString);
 }
 
-var __javas_uid__ = new Uint32Array(4);
-function uid() {
-  function inc(idx) {
-    if (idx === 5) {
-      _.error('What a fuck! uid can be such huge??!!');
-    }
-    __javas_uid__[idx]++;
-    if (__javas_uid__[idx] === 0xFFFF) {
-      inc(idx + 1);
-      __javas_uid__[idx] = 0;
-    }
+var __javas_uid__ = new Uint16Array(4);
+function inc(idx, cc, max) {
+  cc[idx]++;
+  if (cc[idx] === max) {
+    inc(idx + 1, max);
+    cc[idx] = 0;
   }
-  inc(0);
+}
+
+function uid() {
+  var cc = __javas_uid__;
+  inc(0, cc, 0xFFFF);
   var id = [];
-  for (var i = __javas_uid__.length - 1; i >= 0; i--) {
-    id.push(__javas_uid__[i].toString(36));
+  for (var i = cc.length - 1; i >= 0; i--) {
+    id.push(cc[i].toString(36));
   }
   return id.join('-');
 }
+var __javas_shape_id__ = new Uint8Array(3);
+function shapeColorId() {
+  var cc = __javas_shape_id__;
+  inc(0, cc, 0xFF);
+  return 'rgb(' + cc[0] + ',' + cc[1] + ',' + cc[2] + ')';
+}
+
 function $error(msg) {
   if (Config.debug) {
     debugger;
@@ -87,6 +93,7 @@ var Utility = {
   querySelector: $query,
   isString: $isString,
   uid: uid,
+  cid: shapeColorId,
   isObject: $isObject,
   isUndefined: $isUndefined,
   isArray: $isArray,

@@ -16,6 +16,8 @@ Class.partial(Manager, function() {
   this._fps_time = 0;
   this._fps_count = 0;
 
+  this._pfnTimeout = null; //paint if need
+  this._pfnDelegate = _.bind(this, this._pfnHandler);
   /*
    * start loop
    */
@@ -37,32 +39,53 @@ Class.partial(Manager, function() {
       }
     }
   },
+  paintIfNeed: function() {
+    if (this._pfnTimeout) {
+      clearTimeout(this._pfnTimeout);
+    }
+    this._pfnTimeout = setTimeout(this._pfnDelegate, 0);
+  },
+  /*
+   * repaintIfNeed Handler
+   */
+  _pfnHandler: function() {
+    if (!this._loopRunning) {
+      this.paint();
+    }
+    this._pfnTimeout = null;
+  },
   paint: function() {
+    _.log('manager paint');
     var ctx = this.context;
+    var ectx = this._econtext;
+
     ctx.clear();
     ctx.save();
     ctx.scale(this.scaleX, this.scaleY);
     ctx.translate(this.offsetX, this.offsetY);
-    this._paintShapes(ctx);
-    this._paintFPS(ctx, _.now());
+
+    ectx.clear();
+    ectx.save();
+    ectx.scale(this.scaleX, this.scaleY);
+    ectx.translate(this.offsetX, this.offsetY);
+
+    ctx.lineCap = ectx.lineCap = this.lineCap;
+    ctx.lineJoin = ectx.lineJoin = this.lineJoin;
+    ctx.lineWidth = ectx.lineWidth = this.lineWidth;
+
+    this._paintShapes();
+    this._paintFPS(_.now());
+
     ctx.restore();
+    ectx.restore();
   },
   _paintShapes: function() {
     var paused = true;
     var ctx = this.context;
     var ectx = this._econtext;
-
     this.shapeList.forEach(function(shape) {
 
-      if (shape.state === 'run' || shape.state === 'stable') {
-        ctx.save();
-        shape.render(ctx);
-        ctx.restore();
-
-        if (shape._needEventEmit) {
-          shape.renderToChoose(ectx);
-        }
-      }
+      shape.render(ctx, ectx);
 
       if(paused && shape.state !== 'stable') {
         paused = false;
@@ -73,10 +96,11 @@ Class.partial(Manager, function() {
      */
     this.loopRunning = this._animationList.length > 0 || !paused;
   },
-  _paintFPS: function(ctx, nowTime) {
+  _paintFPS: function(nowTime) {
     if (!this._fps_show) {
       return;
     }
+    var ctx = this.context;
     ctx.fillStyle = JColor.CHOCOLATE;
     ctx.font = '15px Arial';
     ctx.textBaseline = 'top';
@@ -101,12 +125,22 @@ Class.partial(Manager, function() {
   _loopRender: function (curTime) {
     //_.log('loop render:', curTime);
     var ctx = this.context;
+    var ectx = this._econtext;
     var aniNotifyMap = this._aniNotifyMap;
 
     ctx.clear();
     ctx.save();
     ctx.save(this.scaleX, this.scaleY);
     ctx.translate(this.offsetX, this.offsetY);
+
+    ectx.clear();
+    ectx.save();
+    ectx.scale(this.scaleX, this.scaleY);
+    ectx.translate(this.offsetX, this.offsetY);
+
+    ctx.lineCap = ectx.lineCap = this.lineCap;
+    ctx.lineJoin = ectx.lineJoin = this.lineJoin;
+    ctx.lineWidth = ectx.lineWidth = this.lineWidth;
 
     var all_finish = true;
     this._animationList.forEach(function(ani) {
@@ -143,14 +177,16 @@ Class.partial(Manager, function() {
     /*
      * 绘制图形
      */
-    this._paintShapes(ctx);
+    this._paintShapes();
 
     /*
      * 绘制FPS信息。放在最后绘制，保证绘制在最顶部。
      */
-    this._paintFPS(ctx, curTime);
+    this._paintFPS(curTime);
 
     ctx.restore();
+    ectx.restore();
+
   },
 
   _loopStart: function () {

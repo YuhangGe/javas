@@ -1,50 +1,79 @@
 var _ = require('../util/util.js');
 var Class = require('j-oo');
 var baseOptions = require('./option.js');
-var ShapeList = require('./struct/list.js');
 var JColor = require('../color/color.js');
 
-module.exports = Class(function BaseShape(points, options) {
+function getStyle(sty) {
+  if (!sty) {
+    return false;
+  } else if (_.isString(sty)) {
+    return new JColor(sty);
+  } else {
+    return sty;
+  }
+}
+
+module.exports = Class(function BaseShape(container, points, options) {
   _.assert(_.isArray(points));
   _.assert(options);
 
   this.id = _.uid();
-  this._chooseColor = '#000';
-
+  /*
+   * container 是Shape所在的容器，可能是javasManager，也可能是GroupShape
+   */
+  this.container = container;
   this.state = options.state ? options.state : 'stable'; // wait, run, stable
-  this._rac = 0; //running animation count;
-  this.parent = options.parent ? options.parent : null;
-  this.children = new ShapeList();
   this.points = points;
 
-  this._strokeStyle = false;
-  this._fillStyle = false;
+  this._chooseId = '';
+  this._chooseColor = null;
+  this._rac = 0; //running animation count;
 
-  this.lineWidth = options.lineWidth ? options.lineWidth : baseOptions.lineWidth;
-  this.lineCap = options.lineCap ? options.lineCap : baseOptions.lineCap;
-  this.lineJoin = options.lineJoin ? options.lineJoin : baseOptions.lineJoin;
-  this.opacity = options.opacity ? options.opacity : baseOptions.opacity;
+  this._opacity = options.opacity ? options.opacity : baseOptions.opacity;
+  this._lineWidth = options.lineWidth ? options.lineWidth : baseOptions.lineWidth;
+  this._strokeStyle = getStyle(options.strokeStyle);
+  this._fillStyle = getStyle(options.fillStyle);
 
-  this.strokeStyle = options.strokeStyle ? options.strokeStyle : false;
-  this.fillStyle = options.fillStyle ? options.fillStyle : false;
-
-  this._spbr = options.setPropertyBeforeRender !== false;
   this._eventMap = new Map();
-  this._needEventEmit = false;
-
+  /*
+   * add shape to manager
+   */
+  container.addShape(this);
 }, {
+  lineWidth: {
+    get: function() {
+      return this._lineWidth;
+    },
+    set: function(val) {
+      if (this._lineWidth === val) {
+        return;
+      }
+      this._lineWidth = val;
+      this.paint();
+    }
+  },
+  opacity: {
+    get: function() {
+      return this._opacity;
+    },
+    set: function(val) {
+      if (this._opacity === val) {
+        return;
+      }
+      this._opacity = val;
+      this.paint();
+    }
+  },
   strokeStyle: {
     get: function() {
       return this._strokeStyle;
     },
     set: function(val) {
-      if (!val) {
-        this._strokeStyle = false;
-      } else if (_.isString(val)){
-        this._strokeStyle = new JColor(val);
-      } else {
-        this._strokeStyle = val;
+      if (this._strokeStyle === val) {
+        return;
       }
+      this._strokeStyle = getStyle(val);
+      this.paint();
     }
   },
   fillStyle: {
@@ -52,17 +81,16 @@ module.exports = Class(function BaseShape(points, options) {
       return this._fillStyle;
     },
     set: function(val) {
-      if (!val) {
-        this._fillStyle = false;
-      } else if (_.isString(val)){
-        this._fillStyle = new JColor(val);
-      } else {
-        this._fillStyle = val;
+      if (this._fillStyle === val) {
+        return;
       }
+      this._fillStyle = getStyle(val);
+      this.paint();
     }
   },
   on: function(eventName, handler) {
     var em = this._eventMap;
+    var reg = em.size === 0;
     var e_array = em.get(eventName);
     if (!e_array) {
       e_array = [];
@@ -71,30 +99,37 @@ module.exports = Class(function BaseShape(points, options) {
     if (e_array.indexOf(handler) < 0) {
       e_array.push(handler);
     }
-    this._needEventEmit = true;
+    if (reg) {
+      this.container.registerEventShape(this);
+    }
+    return this;
   },
   off: function(eventName, handler) {
     //todo
   },
   _emit: function(eventName, jEvent) {
     var me = this;
-    this._eventMap.get(eventName).forEach(function(handler) {
+    var e_array = this._eventMap.get(eventName);
+    if (!e_array) {
+      return;
+    }
+    e_array.forEach(function(handler) {
       handler.call(me, jEvent);
     });
   },
-  onMouseMove: function(event) {
+  _onMouseMove: function(event) {
     this._emit('mousemove', event);
   },
-  onMouseDown: function(event) {
+  _onMouseDown: function(event) {
     this._emit('mousedown', event);
   },
-  onMouseEnter: function(event) {
+  _onMouseEnter: function(event) {
     this._emit('mouseenter', event);
   },
-  onMouseLeave: function(event) {
+  _onMouseLeave: function(event) {
     this._emit('mouseleave', event);
   },
-  onMouseUp: function(event) {
+  _onMouseUp: function(event) {
     this._emit('mouseup', event);
   },
   runningAnimationCount: {
@@ -120,26 +155,64 @@ module.exports = Class(function BaseShape(points, options) {
     }
   },
   _doRender: function(ctx) {
-    _.warn('abstract method');
+    //abstract method
   },
-  render: function(ctx) {
-    if (this._spbr) {
-      ctx.lineWidth = this.lineWidth;
-      ctx.globalAlpha = this.opacity;
-      ctx.lineCap = this.lineCap;
-      ctx.lineJoin = this.lineJoin;
-      if (this.strokeStyle) {
-        ctx.strokeStyle = this.strokeStyle;
-      }
-      if (this.fillStyle) {
-        ctx.fillStyle = this.fillStyle;
-      }
+  _paintRender: function(ctx) {
+    ctx.save();
+    ctx.globalAlpha = this._opacity;
+    ctx.lineWidth = this._lineWidth;
+    if (this._strokeStyle) {
+      ctx.strokeStyle = this._strokeStyle;
+    }
+    if (this._fillStyle) {
+      ctx.fillStyle = this._fillStyle;
     }
     this._doRender(ctx);
+    ctx.restore();
   },
-  renderToChoose: function(ectx) {
-    ectx.strokeStyle = this._chooseColor;
-    ectx.fillStyle = this._chooseColor;
-    this._doRender(ectx);
+  _chooseRender: function(ctx) {
+    ctx.save();
+    ctx.lineWidth = this._lineWidth;
+    ctx.strokeStyle = this._chooseColor;
+    ctx.fillStyle = this._chooseColor;
+    this._doRender(ctx);
+    ctx.restore();
+  },
+  render: function(ctx, ectx) {
+    if (this.state === 'run' || this.state === 'stable') {
+      this._paintRender(ctx);
+      if (this._eventMap.size > 0) {
+        this._chooseRender(ectx);
+      }
+    }
+  },
+  animate: function(options) {
+    this.container.addAnimation({
+      start: options.start,
+      targets: [{
+        shape: this,
+        property: options.property,
+        fromValue: options.fromValue,
+        toValue: options.toValue
+      }],
+      duration: options.duration,
+      notifies: options.notifies
+    });
+  },
+  addAnimation: function(animation) {
+    this.container.addAnimation(animation);
+  },
+  paint: function() {
+    this.container.paintIfNeed();
+  },
+  paintIfNeed: function() {
+    this.container.paintIfNeed();
+  },
+  registerEventShape: function(shape) {
+    this.container.registerEventShape(shape);
+  },
+  addShape: function() {
+    //do nothing
+    //_.warn('abstract method');
   }
 });

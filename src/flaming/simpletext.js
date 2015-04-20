@@ -2,8 +2,8 @@ var Class = require('j-oo');
 var BaseShape = require('../base/shape.js');
 var JPoint = require('../base/struct/point.js');
 
-module.exports = Class(function BasicTextShape(x, y, options) {
-  this.base([new JPoint(0, 0)], options);
+module.exports = Class(function BasicTextShape(x, y, container, options) {
+  this.base(container, [new JPoint(0, 0)], options);
   this._text = options.text ? options.text : '';
   this._font = '';
   this._fontSize = options.fontSize ? options.fontSize : 13;
@@ -30,6 +30,7 @@ module.exports = Class(function BasicTextShape(x, y, options) {
     },
     set: function(text) {
       this._text = text;
+      this.paint();
     }
   },
   font: {

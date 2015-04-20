@@ -41,6 +41,25 @@ function $str2rgba(str) {
   if (/^#[0-9a-fA-F]{3}$/.test(str) || /^#[0-9a-fA-F]{6}$/.test(str)) {
     return parse(str);
   }
+  var m;
+  m = str.match(/^rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/);
+  if (m) {
+    return {
+      r: parseInt(m[1]),
+      g: parseInt(m[2]),
+      b: parseInt(m[3]),
+      a: 1.0
+    }
+  }
+  m = str.match(/^rgba\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*([^\s]+)\s*\)$/);
+  if (m) {
+    return {
+      r: parseInt(m[1]),
+      g: parseInt(m[2]),
+      b: parseInt(m[3]),
+      a: parseFloat(m[4])
+    }
+  }
   var c = $clrMap[str.toLowerCase()];
   if (!c) {
     _.warn('color "' + str + '" not found, use #000 instead.');

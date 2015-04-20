@@ -3,8 +3,8 @@ var BaseShape = require('../base/shape.js');
 var Class = require('j-oo');
 var JPoint = require('../base/struct/point.js');
 
-module.exports = Class(function LineShape(x1, y1, x2, y2, options) {
-  this.base([new JPoint(x1, y1), new JPoint(x2, y2)], options);
+module.exports = Class(function LineShape(x1, y1, x2, y2, javasManager, options) {
+  this.base(javasManager, [new JPoint(x1, y1), new JPoint(x2, y2)], options);
 }, {
   _doRender: function(ctx) {
     var ps = this.points;
