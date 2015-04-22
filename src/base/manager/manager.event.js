@@ -55,16 +55,20 @@ Class.partial(Manager, function() {
       if (shape === this._mOverShape) {
         this._mOverShape._onMouseMove();
       } else if (!this._mOverShape) {
-        shape._emit('mouseenter');
+        shape._onMouseEnter();
+        this.cursor = shape.cursor;
       } else {
         this._mOverShape._onMouseLeave();
         shape._onMouseEnter();
+        this.cursor = shape.cursor;
       }
     } else {
       if (this._mOverShape) {
         this._mOverShape._onMouseLeave();
+        this.cursor = this._defaultCursor;
       }
     }
+
 
     this._mOverShape = shape;
 
@@ -74,9 +78,9 @@ Class.partial(Manager, function() {
     var x = event.offsetX;
     var y = event.offsetY;
     var shape = this._chooseShape(x, y);
-
-    _.log(shape);
-
+    if (shape) {
+      shape._onMouseDown();
+    }
     $.on(window, $.touchEvent.move, this._mvDelegate);
     $.on(window, $.touchEvent.up, this._muDelegate);
   },
@@ -84,8 +88,8 @@ Class.partial(Manager, function() {
     console.log(event.pageX, event.offsetY);
   },
   _muHandler: function(event) {
+    this._isMouseDown = false;
 
-    this._isMouseDown = true;
     $.off(window, $.touchEvent.move, this._mvDelegate);
     $.off(window, $.touchEvent.up, this._muDelegate);
   }

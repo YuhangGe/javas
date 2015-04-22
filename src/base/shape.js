@@ -24,6 +24,7 @@ module.exports = Class(function BaseShape(container, points, options) {
   this.container = container;
   this.state = options.state ? options.state : 'stable'; // wait, run, stable
   this.points = points;
+  this.cursor = options.cursor ? options.cursor : container.cursor;
 
   this._chooseId = '';
   this._chooseColor = null;
@@ -35,10 +36,16 @@ module.exports = Class(function BaseShape(container, points, options) {
   this._fillStyle = getStyle(options.fillStyle);
 
   this._eventMap = new Map();
+  this._needChooseRender = false;
   /*
    * add shape to manager
    */
   container.addShape(this);
+
+  if (options.cursor) {
+    this._needChooseRender = true;
+    container.registerEventShape(this);
+  }
 }, {
   lineWidth: {
     get: function() {
@@ -99,7 +106,8 @@ module.exports = Class(function BaseShape(container, points, options) {
     if (e_array.indexOf(handler) < 0) {
       e_array.push(handler);
     }
-    if (reg) {
+    if (reg && !this._chooseId) {
+      this._needChooseRender = true;
       this.container.registerEventShape(this);
     }
     return this;
@@ -181,7 +189,7 @@ module.exports = Class(function BaseShape(container, points, options) {
   render: function(ctx, ectx) {
     if (this.state === 'run' || this.state === 'stable') {
       this._paintRender(ctx);
-      if (this._eventMap.size > 0) {
+      if (this._needChooseRender > 0) {
         this._chooseRender(ectx);
       }
     }
@@ -215,4 +223,10 @@ module.exports = Class(function BaseShape(container, points, options) {
     //do nothing
     //_.warn('abstract method');
   }
+  //putCursor: function(cursor) {
+  //  this.container.putCursor(cursor);
+  //},
+  //popCursor: function() {
+  //  this.container.popCursor();
+  //}
 });

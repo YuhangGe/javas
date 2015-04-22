@@ -40,8 +40,8 @@ Class.partial(Manager, function() {
     }
   },
   paintIfNeed: function() {
-    if (this._pfnTimeout) {
-      clearTimeout(this._pfnTimeout);
+    if (this._loopRunning || this._pfnTimeout !== null) {
+      return;
     }
     this._pfnTimeout = setTimeout(this._pfnDelegate, 0);
   },

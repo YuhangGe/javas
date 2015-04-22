@@ -15,7 +15,8 @@ var defaultOptions = {
   scaleY: 1.0,
   lineJoin: 'round',
   lineCap: 'round',
-  lineWidth: 3
+  lineWidth: 3,
+  cursor: 'default'
 };
 
 function rgb2str(data) {
@@ -37,8 +38,8 @@ module.exports = Class(function Manager(target, options) {
   this.context = this.canvas.context;
   this._ecanvas = new JCavnas(document.createElement('canvas'));
   this._econtext = this._ecanvas.context;
-
-  //window.ttc = document.body.appendChild(this._ecanvas._originCanvas);
+  this._defaultCursor = options.cursor;
+  this._cursor = '';
 
   this.shapeList = new ShapeList();
   this._animationList = [];
@@ -61,7 +62,30 @@ module.exports = Class(function Manager(target, options) {
   this._chooseColor = new Uint8Array(3);
   this._chooseMap = new Map();
 
+  this.cursor = this._defaultCursor;
+
 }, {
+  //putCursor: function(cursor) {
+  //  this._cursor.push(cursor);
+  //  this._setCursor();
+  //},
+  //popCursor: function() {
+  //  if (this._cursor.length > 2) {
+  //    this._cursor.pop();
+  //    this._setCursor();
+  //  }
+  //},
+  cursor: {
+    get: function() {
+      return this._cursor;
+    },
+    set: function(val) {
+      if (this._cursor === val) {
+        return;
+      }
+      this.canvas._originCanvas.style.cursor = this._cursor = val;
+    }
+  },
   _nextChooseId: function() {
     var cc = this._chooseColor;
     function inc(idx, cc) {
@@ -131,7 +155,10 @@ module.exports = Class(function Manager(target, options) {
     return this;
   },
   registerEventShape: function(shape) {
-    _.assert(!shape._chooseId);
+    if (shape._chooseId) {
+      //已经注册过了
+      return;
+    }
     shape._chooseId = this._nextChooseId();
     shape._chooseColor = new JColor(shape._chooseId);
     this._chooseMap.set(shape._chooseId, shape);
@@ -140,7 +167,6 @@ module.exports = Class(function Manager(target, options) {
     var dt = this._econtext.getImageData(x, y, 1, 1);
     var cd = dt.data;
     //_.log(x, y);
-    //_.log(cd);
     var k;
     if (cd[3] === 255 && this._chooseMap.has((k = rgb2str(cd)))) {
       return this._chooseMap.get(k);

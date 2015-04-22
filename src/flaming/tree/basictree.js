@@ -1,11 +1,11 @@
 var Class = require('j-oo');
-var BaseShape = require('../base/shape.js');
-var TextShape = require('./simpletext.js');
-var BezierShape = require('../shapes/bezier.js');
-var JPoint = require('../base/struct/point.js');
-var CircleShape = require('../shapes/circle.js');
-var RectShape = require('../shapes/rect.js');
-var TreeLayout = require('../math/treelayout.js');
+var BaseShape = require('../../base/shape.js');
+var TextShape = require('./../simpletext.js');
+var BezierShape = require('../../shapes/bezier.js');
+var JPoint = require('../../base/struct/point.js');
+var TreeDotShape = require('./treedot.js');
+var RectShape = require('../../shapes/rect.js');
+var TreeLayout = require('../../math/treelayout.js');
 var DOT_RADIUS = 8;
 var ITEM_WIDTH = 170;
 var ITEM_HEIGHT = 35;
@@ -58,14 +58,26 @@ var RootTreeNode  = Class(function RootTreeNode(x, y, container, options) {
     fillStyle: '#b4e9fc'
   });
 
-  this.dot = new CircleShape(0, 0, DOT_RADIUS, this, {
-    fillStyle: '#00C8FE'
+  this.dot = new TreeDotShape(this, {
+    radius: DOT_RADIUS,
+    fillStyle: '#00C8FE',
+    crossColor: '#ffffff',
+    crossLineWidth: 2,
+    expand: options.expand !== false
+  });
+
+  var self = this;
+  this.dot.on('mousedown', function() {
+    self.expand = !self._expand;
   });
 
   this.traces = [];
 
-  this._expand = true;
+  this._expand = options.expand !== false;
 }, {
+  _layout: function() {
+    this.container._layout();
+  },
   _afterLayout: function(x, y) {
     var ps = this.points;
     ps[0].x = x;
@@ -74,7 +86,7 @@ var RootTreeNode  = Class(function RootTreeNode(x, y, container, options) {
     this.rect.setPosition(x - ITEM_WIDTH / 2, y - ITEM_HEIGHT * 1.5);
     this.text.setPosition(x, y - ITEM_HEIGHT);
   },
-  _afterChildrenLayout: function(mx, my) {
+  _afterChildrenLayout: function() {
     var dx;
     var traces = this.traces;
     var dp = this.dot.points[0];
@@ -104,30 +116,32 @@ var RootTreeNode  = Class(function RootTreeNode(x, y, container, options) {
       return this._expand;
     },
     set: function(val) {
+      if (this._expand === val) {
+        return;
+      }
       this._expand = val;
+      this.dot.expand = val;
+      this._layout();
     }
   },
   render: function(ctx, ectx) {
     if (this.state === 'wait') {
       return;
     }
-    this._doRender(ctx);
+    if (this.children.length > 0 && this._expand) {
+      this.traces.forEach(function(trace) {
+        trace.render(ctx, ectx);
+      });
+    }
+    this.rect.render(ctx, ectx);
+    this.text.render(ctx, ectx);
+    if (this.children.length > 0) {
+      this.dot.render(ctx, ectx);
+    }
     if (this._expand) {
       this.children.forEach(function(node) {
         node.render(ctx, ectx);
       });
-    }
-  },
-  _doRender: function(ctx) {
-    if (this.children.length > 0 && this._expand) {
-        this.traces.forEach(function(trace) {
-          trace.render(ctx);
-        });
-    }
-    this.rect.render(ctx);
-    this.text.render(ctx);
-    if (this.children.length > 0) {
-      this.dot.render(ctx);
     }
   }
 }, AbstractTreeNode);
@@ -138,6 +152,12 @@ var TreeNode = Class(function TreeNode(x, y, parent, options) {
   this.rect.fillStyle = '#f3f5f7';
   this.rect.strokeStyle = '#efefef';
 }, {
+  _layout: function() {
+    /*
+     * 非root节点，向上递归到root节点重新排版。
+     */
+    this.parent._layout();
+  },
   _afterLayout: function(x, y) {
     var ps = this.points;
     ps[0].x = x;
@@ -171,7 +191,7 @@ var TreeNode = Class(function TreeNode(x, y, parent, options) {
 }, RootTreeNode);
 
 module.exports = Class(function BasicTree(topX, topY, javasManager, treeData) {
-  this.base(javasManager, [], {});
+  this.base(javasManager, [new JPoint(topX, topY)], {});
 
   var tree = this;
 
@@ -185,7 +205,8 @@ module.exports = Class(function BasicTree(topX, topY, javasManager, treeData) {
     var i;
     for (i = 0; i < dc.length; i++) {
       parentShape._appendChild(new TreeNode(0, 0, parentShape, {
-        text: dc[i].text
+        text: dc[i].text,
+        expand: dc[i].expand !== false
       }));
       build(dc[i], nc[i]);
     }
@@ -193,14 +214,17 @@ module.exports = Class(function BasicTree(topX, topY, javasManager, treeData) {
 
   build(treeData, this.root);
 
-  TreeLayout.layout(this.root, {
-    topX: topX,
-    topY: topY,
-    minMargin: 30
-  });
+  this._layout();
 
 }, {
-  render: function(ctx) {
-    this.root.render(ctx);
+  _layout: function() {
+    TreeLayout.layout(this.root, {
+      topX: this.points[0].x,
+      topY: this.points[0].y,
+      minMargin: 30
+    });
+  },
+  render: function(ctx, ectx) {
+    this.root.render(ctx, ectx);
   }
 }, BaseShape);

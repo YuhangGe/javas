@@ -13,7 +13,7 @@ var Javas = {
   Ellipse: require('./shapes/ellipse.js'),
   Bezier: require('./shapes/bezier.js'),
   FreeBezier: require('./shapes/freebezier.js'),
-  FlamingTree: require('./flaming/basictree.js')
+  FlamingTree: require('./flaming/tree/basictree.js')
 };
 module.exports = Javas;
 
