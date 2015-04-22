@@ -35,6 +35,8 @@ module.exports = Class(function Manager(target, options) {
    * todo check target, if target is not canvas, create new Canvas element.
    */
   this.canvas = new JCavnas(target);
+  target.setAttribute('tabindex', 1);
+
   this.context = this.canvas.context;
   this._ecanvas = new JCavnas(document.createElement('canvas'));
   this._econtext = this._ecanvas.context;
@@ -54,8 +56,8 @@ module.exports = Class(function Manager(target, options) {
   this.lineJoin = options.lineJoin;
   this.lineCap = options.lineCap;
   this.lineWidth = options.lineWidth;
-  this.offsetX = options.offsetX;
-  this.offsetY = options.offsetY;
+  this._offsetX = options.offsetX;
+  this._offsetY = options.offsetY;
   this.scaleX = options.scaleX;
   this.scaleY = options.scaleY;
 
@@ -65,16 +67,31 @@ module.exports = Class(function Manager(target, options) {
   this.cursor = this._defaultCursor;
 
 }, {
-  //putCursor: function(cursor) {
-  //  this._cursor.push(cursor);
-  //  this._setCursor();
-  //},
-  //popCursor: function() {
-  //  if (this._cursor.length > 2) {
-  //    this._cursor.pop();
-  //    this._setCursor();
-  //  }
-  //},
+
+  offsetX: {
+    get: function() {
+      return this._offsetX;
+    },
+    set: function(val) {
+      if (this._offsetX === val) {
+        return;
+      }
+      this._offsetX = val;
+      this.paintIfNeed();
+    }
+  },
+  offsetY: {
+    get: function() {
+      return this._offsetY;
+    },
+    set: function(val) {
+      if (this._offsetY === val) {
+        return;
+      }
+      this._offsetY = val;
+      this.paintIfNeed();
+    }
+  },
   cursor: {
     get: function() {
       return this._cursor;
@@ -89,9 +106,13 @@ module.exports = Class(function Manager(target, options) {
   _nextChooseId: function() {
     var cc = this._chooseColor;
     function inc(idx, cc) {
-      cc[idx]++;
+      try {
+        cc[idx]++;
+      } catch(e) {
+        debugger;
+      }
       if (cc[idx] === 0xFF) {
-        inc(idx + 1);
+        inc(idx + 1, cc);
         cc[idx] = 0;
       }
     }

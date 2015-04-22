@@ -62,22 +62,23 @@ Class.partial(Manager, function() {
     ctx.clear();
     ctx.save();
     ctx.scale(this.scaleX, this.scaleY);
-    ctx.translate(this.offsetX, this.offsetY);
+    ctx.translate(this._offsetX, this._offsetY);
 
     ectx.clear();
     ectx.save();
     ectx.scale(this.scaleX, this.scaleY);
-    ectx.translate(this.offsetX, this.offsetY);
+    ectx.translate(this._offsetX, this._offsetY);
 
     ctx.lineCap = ectx.lineCap = this.lineCap;
     ctx.lineJoin = ectx.lineJoin = this.lineJoin;
     ctx.lineWidth = ectx.lineWidth = this.lineWidth;
 
     this._paintShapes();
-    this._paintFPS(_.now());
-
     ctx.restore();
     ectx.restore();
+
+    this._paintFPS(_.now());
+
   },
   _paintShapes: function() {
     var paused = true;
@@ -101,6 +102,7 @@ Class.partial(Manager, function() {
       return;
     }
     var ctx = this.context;
+    ctx.save();
     ctx.fillStyle = JColor.CHOCOLATE;
     ctx.font = '15px Arial';
     ctx.textBaseline = 'top';
@@ -110,6 +112,7 @@ Class.partial(Manager, function() {
       info = 'FPS: ' + (this._fps_count / (nowTime - this._fps_time) * 1000).toFixed(2);
     }
     ctx.fillText(info, 10, 10);
+    ctx.restore();
   },
   _loopHandler: function () {
     var curTime = _.now();
@@ -130,13 +133,13 @@ Class.partial(Manager, function() {
 
     ctx.clear();
     ctx.save();
-    ctx.save(this.scaleX, this.scaleY);
-    ctx.translate(this.offsetX, this.offsetY);
+    ctx.scale(this.scaleX, this.scaleY);
+    ctx.translate(this._offsetX, this._offsetY);
 
     ectx.clear();
     ectx.save();
     ectx.scale(this.scaleX, this.scaleY);
-    ectx.translate(this.offsetX, this.offsetY);
+    ectx.translate(this._offsetX, this._offsetY);
 
     ctx.lineCap = ectx.lineCap = this.lineCap;
     ctx.lineJoin = ectx.lineJoin = this.lineJoin;
@@ -179,13 +182,13 @@ Class.partial(Manager, function() {
      */
     this._paintShapes();
 
+    ctx.restore();
+    ectx.restore();
+
     /*
      * 绘制FPS信息。放在最后绘制，保证绘制在最顶部。
      */
     this._paintFPS(curTime);
-
-    ctx.restore();
-    ectx.restore();
 
   },
 

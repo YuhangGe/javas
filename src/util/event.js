@@ -12,7 +12,7 @@ function stopEvent(event) {
 
 function addEvent(element, eventName, eventHandler) {
   if (eventName === 'mousewheel' && BrowserDetect.firefox) {
-    eventName = DOMMouseScroll;
+    eventName = 'DOMMouseScroll';
   }
   element.addEventListener(eventName, eventHandler);
 }

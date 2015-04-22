@@ -20,7 +20,7 @@ Class.partial(JContext, function() {
 
   },
   scale: function(scaleX, scaleY) {
-
+    this._ctx.scale(scaleX, scaleY);
   },
   translate: function(offsetX, offsetY) {
     this._ctx.translate(offsetX * this.unitX, offsetY * this.unitY);

@@ -163,6 +163,11 @@ function walkAbsolute(chs, px, py) {
     n._afterLayout(x, y);
     if (chs[i].expand) {
       walkAbsolute(chs[i].children, x, y);
+      /*
+       * 回收计算过程中的数组。
+       */
+      chs[i].__left_bound = null;
+      chs[i].__right_bound = null;
     }
     n._afterChildrenLayout(x, y);
   }
@@ -184,6 +189,7 @@ function layout(treeRoot, options) {
   walkAbsolute(treeRoot.children, options.topX, options.topY);
   treeRoot._afterChildrenLayout(options.topX, options.topY);
 
+
   //levelIndexes.forEach(function(lev) {
   //  var l = [];
   //  lev.forEach(function(node) {
@@ -193,8 +199,36 @@ function layout(treeRoot, options) {
   //});
   //
   //console.log(treeRoot);
-
+  /*
+   * 回收计算过程中的数组。
+   */
+  treeRoot.__left_bound = null;
+  treeRoot.__right_bound = null;
   levelIndexes.length = 0;
 }
 
+function moveTo(treeRoot, topX, topY) {
+
+  function walk(chs, px, py) {
+    var i, len = chs.length;
+    var n;
+    var x, y;
+    for (i = 0; i < len; i++) {
+      n = chs[i];
+      x = n.__x + px;
+      y = py + LEVEL_MARGIN;
+      n._afterLayout(x, y);
+      if (chs[i].expand) {
+        walk(chs[i].children, x, y);
+      }
+      n._afterChildrenLayout(x, y);
+    }
+  }
+
+  treeRoot._afterLayout(topX, topY);
+  walk(treeRoot.children, topX, topY);
+  treeRoot._afterChildrenLayout(topX, topY);
+
+}
+module.exports.move = moveTo;
 module.exports.layout = layout;
