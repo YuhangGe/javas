@@ -225,83 +225,9 @@ module.exports = Class(function BasicTree(topX, topY, javasManager, treeData) {
   build(treeData, this.root);
 
   this._layout();
-
-  this._mdPoint = new JPoint(0, 0);
-  var me = this;
-  javasManager.on('mousedown', function() {
-    me._mdPoint.x = me.container._offsetX; // me.points[0].x;
-    me._mdPoint.y = me.container._offsetY; // me.points[0].y;
-    me.container.cursor = 'move';
-  });
-  javasManager.on('mousedrag', function(event) {
-    me.container._offsetX = me._mdPoint.x + event.deltaX / me._scale;
-    me.container._offsetY = me._mdPoint.y + event.deltaY / me._scale;
-    me.paint();
-  });
-  javasManager.on('mouseup', function() {
-    me.container.cursor = 'default';
-  });
-
-  javasManager.on('mousewheel', function(ev) {
-    if (ev.ctrlKey) {
-      me.scale(me._scale * (1 + ev.deltaY / 200), ev.x, ev.y);
-    } else {
-      me.adjust(ev.deltaX, ev.deltaY);
-    }
-  });
-  javasManager.on('keydown', function(ev) {
-    console.log(ev);
-    if (ev.ctrlKey) {
-      if (ev.keyCode === 187) {
-        me.scale(me._scale * 1.1);
-        ev.stop();
-      } else if (ev.keyCode === 189) {
-        me.scale(me._scale / 1.1);
-        ev.stop();
-      } else if (ev.keyCode === 188) {
-        me.scale(1.0);
-        ev.stop();
-      }
-    }
-  })
 }, {
-  scale: function(sc, x, y) {
-    if (this._scale === sc) {
-      return;
-    }
-    if (sc < 0.1 || sc > 10) {
-      return;
-    }
-    var ps = this._scale;
-
-    this._scale = sc;
-    var j = this.container;
-    j.scaleX = sc;
-    j.scaleY = sc;
-    x = _.isDefined(x) ? x : j.width / 2;
-    y = _.isDefined(y) ? y : j.height / 2;
-
-    var px = j._offsetX;
-    var py = j._offsetY;
-
-    //px / ps
-    //j._offsetX = (x + px) * ps / sc - x; // 0; //= sc;
-    //j._offsetY  = (y + py) * ps / sc - y; ///= sc;
-
-    //this.paint();
-
-    this.adjust((x - px) / ps * sc - x, (y - py) / ps * sc - y);
-  },
   _adjustX: function(dx) {
-    var j = this.container;
-    var s = this._scale;
-    j._offsetX += (dx) / s;
-  },
-  adjust: function(dx, dy) {
-    var j = this.container;
-    var s = this._scale;
-    j.offsetX += dx / s;
-    j.offsetY += dy / s;
+    this.container.adjust(dx, 0);
   },
   _moveTo: function(x, y) {
     this.points[0].x = x;

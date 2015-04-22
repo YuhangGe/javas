@@ -6,6 +6,30 @@ var $ = require('../../util/event.js');
 var JPoint = require('../struct/point.js');
 var JEvent = require('../struct/event.js');
 
+var KEY_TABLE = {
+  33 : 'pageup',
+  34 : 'pagedown',
+  36 : 'home',
+  35 : 'end',
+  37 : 'left',
+  39 : 'right',
+  38 : 'up',
+  40 : 'down'
+};
+
+/*
+ * 个另按键在不同浏览器下面的keycode不一致。参考：http://www.javascripter.net/faq/keycodes.htm
+ * 本来应该是把快捷键处理放在keypress事件中，使用charCode就能达到一致了，但keypress对于某些按键不会触发。
+ * opera浏览器已经彻底忽略。
+ */
+if($.browserDetect.firefox) {
+  KEY_TABLE[173] = '-';
+  KEY_TABLE[61] = '=';
+} else {
+  KEY_TABLE[189] = '-';
+  KEY_TABLE[187] = '=';
+}
+
 Class.partial(Manager, function() {
   this._mOverShape = null;
   this._mdDelegate = _.bind(this, this._mdHandler);
@@ -13,7 +37,7 @@ Class.partial(Manager, function() {
   this._muDelegate = _.bind(this, this._muHandler);
 
   this._isMouseDown = false;
-  this._isMouseDrag = false;
+  this._isScrollDown = false;
 
   this._mdPoint = new JPoint(0, 0);
   this._mdtCount = 0;
@@ -25,7 +49,6 @@ Class.partial(Manager, function() {
 
   this._hasMV = false;
   this._emitMap = new Map();
-
   this._initEvent();
 }, {
   on: function(eventName, handler) {
@@ -65,11 +88,25 @@ Class.partial(Manager, function() {
       $.on(canvas, 'mousemove', _.bind(this, this._mCheckHandler));
 
       $.on(canvas, 'contextmenu', $.stop);
-      $.on(canvas, 'mousewheel', _.bind(this, this._wheelHandler));
 
     }
 
-    $.on(canvas, 'keydown', _.bind(this, this._kpHandler));
+    $.on(document.body, 'keydown', _.bind(this, this._kpHandler));
+
+    if (this.scalable) {
+      this.on('ctrl-=', _.bind(this, this._zoomOutHandler));
+      this.on('ctrl--', _.bind(this, this._zoomInHandler));
+      this.on('ctrl-0', _.bind(this, this._zoomOriginHandler));
+      $.on(canvas, 'mousewheel', _.bind(this, this._wheelZoomHandler));
+    }
+
+    if (this.scrollable) {
+      $.on(canvas, 'mousewheel', _.bind(this, this._wheelScrollHandler));
+    }
+    //this.on('left', _.bind(this, this._keyLeftHandler));
+    //this.on('right', _.bind(this, this._keyRightHandler));
+    //this.on('up', _.bind(this, this._keyUpHandler));
+    //this.on('down', _.bind(this, this._keyDownHandler));
 
   },
   _mCheckHandler: function(event) {
@@ -120,6 +157,9 @@ Class.partial(Manager, function() {
     if (shape) {
       ev = new JEvent(event);
       shape._onMouseDown(ev);
+    } else if (this.scrollable) {
+      this._isScrollDown = true;
+      this.cursor = 'move';
     }
     if (this._emitMap.has('mousedown')) {
       ev = new JEvent(event);
@@ -136,7 +176,13 @@ Class.partial(Manager, function() {
     var m = this._mdPoint;
     var ev;
 
-    this._cShape(event);
+    if (this._isScrollDown) {
+      this._offsetX += (x - m.x) / this._scaleX;
+      this._offsetY += (y - m.y) / this._scaleY;
+      this.paintIfNeed();
+    } else {
+      this._cShape(event);
+    }
 
     if (this._hasMV) {
       ev = new JEvent(event);
@@ -157,11 +203,16 @@ Class.partial(Manager, function() {
     var x = event.layerX;
     var y = event.layerY;
     var ev;
-    var shape = this._chooseShape(x, y);
-    if (shape) {
-      ev = new JEvent(event);
-      shape._onMouseUp(ev);
+    if (this._isScrollDown) {
+      this.cursor = this._defaultCursor;
+    } else {
+      var shape = this._chooseShape(x, y);
+      if (shape) {
+        ev = new JEvent(event);
+        shape._onMouseUp(ev);
+      }
     }
+
     if (this._emitMap.has('mouseup')) {
       ev = new JEvent(event);
       this._emit('mouseup', ev);
@@ -170,31 +221,48 @@ Class.partial(Manager, function() {
     $.off(window, $.touchEvent.move, this._mvDelegate);
     $.off(window, $.touchEvent.up, this._muDelegate);
   },
-  _wheelHandler: function(e) {
-    if(!this._emitMap.has('mousewheel'))
+  _wheelZoomHandler: function(e) {
+    if (!e.ctrlKey && !e.metaKey) {
       return;
-
-    var	deltaX = 0;
-    var deltaY = 0;
-    if(_.isDefined(e.wheelDeltaY)) {
-      deltaY = e.wheelDeltaY / 10;
-      deltaX = e.wheelDeltaX / 10;
-    } else if(typeof e.wheelDelta !== 'undefined') {
-      deltaY = e.wheelDelta / 10;
-      deltaX = 0;
-    } else if(e.detail) {
-      deltaY = -e.detail;
-      deltaX = 0;
     }
-
-    var ev = new JEvent(e);
-    ev.deltaX = deltaX;
-    ev.deltaY = deltaY;
-
-    this._emit('mousewheel', ev);
+    var delta = $.getWheelDelta(e);
+    this.scaleX *= (1 + delta.deltaY / 100);
+    this.scaleY *= (1 + delta.deltaY / 100);
+    this.paintIfNeed();
+    $.stop(e);
+  },
+  _wheelScrollHandler: function(e) {
+    if (e.ctrlKey || e.metaKey) {
+      return;
+    }
+    var delta = $.getWheelDelta(e);
+    this._offsetX += delta.deltaX / this.scaleX;
+    this._offsetY += delta.deltaY / this.scaleY;
+    this.paintIfNeed();
     $.stop(e);
   },
   _kpHandler: function(ev) {
-    this._emit('keydown', new JEvent(ev));
+    var ctrlKey = ev.ctrlKey || ev.metaKey;
+    var c = ev.keyCode;
+    var c_key = (ctrlKey ? "ctrl-" : "") + (ev.shiftKey ? "shift-" : "") + (ev.altKey ? "alt-" : "") + (KEY_TABLE[c] ? String.fromCharCode(c).toLowerCase() : KEY_TABLE[c]);
+    if (this._emitMap.has(c_key)) {
+      this._emit(c_key);
+    }
+    if (this._emitMap.has('keydown')) {
+      this._emit('keydown', ev);
+    }
+  },
+  _zoomOutHandler: function() {
+
+  },
+  _zoomInHandler: function() {
+
+  },
+  _zoomOriginHandler: function() {
+
+  },
+  adjust: function(dx, dy) {
+    this.offsetX += dx / this.scaleX;
+    this.offsetY += dy / this.scaleY;
   }
 });

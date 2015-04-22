@@ -16,7 +16,9 @@ var defaultOptions = {
   lineJoin: 'round',
   lineCap: 'round',
   lineWidth: 3,
-  cursor: 'default'
+  cursor: 'default',
+  scalable: true,
+  scrollable: true
 };
 
 function rgb2str(data) {
@@ -35,7 +37,6 @@ module.exports = Class(function Manager(target, options) {
    * todo check target, if target is not canvas, create new Canvas element.
    */
   this.canvas = new JCavnas(target);
-  target.setAttribute('tabindex', 1);
 
   this.context = this.canvas.context;
   this._ecanvas = new JCavnas(document.createElement('canvas'));
@@ -47,6 +48,8 @@ module.exports = Class(function Manager(target, options) {
   this._animationList = [];
   this._aniNotifyMap = new Map();
 
+  this.scrollable = options.scrollable;
+  this.scalable = options.scalable;
 
   this.width = options.width;
   this.height = options.height;

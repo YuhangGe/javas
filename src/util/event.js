@@ -45,6 +45,7 @@ module.exports = {
   off: delEvent,
   point: getPoint,
   stop: stopEvent,
+  browserDetect: BrowserDetect,
   mobileDetect: MobileDetect,
   addGesture : function(ele, touch_start_handler, start_handler, pinch_handler, drag_handler, touch_end_handler) {
     if(typeof touch_end_handler !== 'function') {
@@ -329,6 +330,24 @@ module.exports = {
     } else {
       addEvent(ele, 'mousedown', _down_mouse);
       addEvent(ele, 'mouseup', _up_mouse);
+    }
+  },
+  getWheelDelta: function(e) {
+    var	deltaX = 0;
+    var deltaY = 0;
+    if(typeof e.wheelDeltaY !== 'undefined') {
+      deltaY = e.wheelDeltaY / 5;
+      deltaX = e.wheelDeltaX / 5;
+    } else if(typeof e.wheelDelta !== 'undefined') {
+      deltaY = e.wheelDelta / 5;
+      deltaX = 0;
+    } else if(e.detail) {
+      deltaY = -e.detail * 2;
+      deltaX = 0;
+    }
+    return {
+      deltaX: deltaX,
+      deltaY: deltaY
     }
   }
 };
