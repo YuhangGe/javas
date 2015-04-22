@@ -2,8 +2,8 @@ var _ = require('../util/util.js');
 var BaseShape = require('../base/shape.js');
 var Class = require('j-oo');
 
-module.exports = Class(function BezierShape(points, options) {
-  this.base(points, options);
+module.exports = Class(function BezierShape(container, points, options) {
+  this.base(container, points, options);
 }, {
   _doRender: function(ctx) {
     var ps = this.points;

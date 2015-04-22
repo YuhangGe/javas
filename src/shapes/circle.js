@@ -3,8 +3,8 @@ var BaseShape = require('../base/shape.js');
 var Class = require('j-oo');
 var JPoint = require('../base/struct/point.js');
 
-module.exports = Class(function CircleShape(centerX, centerY, radius, options) {
-  this.base([new JPoint(0, 0)], options);
+module.exports = Class(function CircleShape(centerX, centerY, radius, container, options) {
+  this.base(container, [new JPoint(0, 0)], options);
   this.radius = radius;
   this.setPosition(centerX, centerY);
 }, {

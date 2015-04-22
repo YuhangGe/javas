@@ -9,10 +9,8 @@ var TreeLayout = require('../math/treelayout.js');
 var DOT_RADIUS = 8;
 var ITEM_WIDTH = 170;
 var ITEM_HEIGHT = 35;
-var TRACE_WIDTH = 90;
-var TRACE_HEIGHT = 90;
 var TRACE_LINE_WIDTH = 8;
-var PADDING = 20;
+var PADDING = 6;
 
 var AbstractTreeNode = Class(function AbstractTreeNode(x, y, width, height, container, options) {
   this.base(container, [new JPoint(x, y)], options);
@@ -20,17 +18,28 @@ var AbstractTreeNode = Class(function AbstractTreeNode(x, y, width, height, cont
   this.width = width;
   this.height = height;
   this.children = [];
+  this.traces = [];
   this.isCollapsed = options.isCollapsed === true;
   /*
    * 下面的成员变量用于排版计算
    */
-  this.__level_at = 0;
+  this.__w = width;
   this.__x = 0;
-  this.__left_bound = 0;
-  this.__right_bound = 0;
+  this.__left_bound = null;
+  this.__right_bound = null;
 }, {
-  addChild: function(shape) {
-    this.children.push(shape);
+  _afterLayout: function(x, y) {
+
+  },
+  _afterChildrenLayout: function(x, y) {
+
+  },
+  _appendChild: function(child) {
+    this.children.push(child);
+    this.traces.push(new BezierShape(this, JPoint.create(4), {
+      strokeStyle: '#f3f5f7',
+      lineWidth: TRACE_LINE_WIDTH
+    }));
   }
 }, BaseShape);
 
@@ -53,32 +62,42 @@ var RootTreeNode  = Class(function RootTreeNode(x, y, container, options) {
     fillStyle: '#00C8FE'
   });
 
-  //this.leftTrace = new BezierShape(JPoint.create(4), {
-  //  parent: this,
-  //  strokeStyle: '#f6f6f6',
-  //  lineWidth: TRACE_LINE_WIDTH
-  //});
-  //this.rightTrace = new BezierShape(JPoint.create(4), {
-  //  parent: this,
-  //  strokeStyle: '#f6f6f6',
-  //  lineWidth: TRACE_LINE_WIDTH
-  //});
-
   this.traces = [];
 
-  this._expand = false;
+  this._expand = true;
 }, {
-  _setTracePoints: function(x, y) {
-
-  },
-  setPosition: function(x, y) {
+  _afterLayout: function(x, y) {
     var ps = this.points;
     ps[0].x = x;
     ps[0].y = y;
     this.dot.setPosition(x, y);
     this.rect.setPosition(x - ITEM_WIDTH / 2, y - ITEM_HEIGHT * 1.5);
     this.text.setPosition(x, y - ITEM_HEIGHT);
-    //this._setTracePoints(x, y);
+  },
+  _afterChildrenLayout: function(mx, my) {
+    var dx;
+    var traces = this.traces;
+    var dp = this.dot.points[0];
+    var px = dp.x;
+    var py = dp.y;
+    this.children.forEach(function(child, idx) {
+      var trace = traces[idx];
+      var ps = trace.points;
+      var cp = child.points[0];
+      if (child.__x >= 0) {
+        dx = cp.x - ITEM_WIDTH / 2 + PADDING + DOT_RADIUS;
+      } else {
+        dx = cp.x + ITEM_WIDTH / 2 - PADDING - DOT_RADIUS;
+      }
+      ps[0].x = px;
+      ps[0].y = py;
+      ps[3].x = dx;
+      ps[3].y = cp.y;
+      ps[1].x = px + (dx - px ) / 4;
+      ps[1].y = cp.y - (cp.y - py) / 3;
+      ps[2].x = dx - (dx - px) / 4;
+      ps[2].y = py + (cp.y - py) / 3;
+    });
   },
   expand: {
     get: function() {
@@ -88,22 +107,28 @@ var RootTreeNode  = Class(function RootTreeNode(x, y, container, options) {
       this._expand = val;
     }
   },
-  render: function(ctx) {
+  render: function(ctx, ectx) {
     if (this.state === 'wait') {
       return;
     }
     this._doRender(ctx);
     if (this._expand) {
-
+      this.children.forEach(function(node) {
+        node.render(ctx, ectx);
+      });
     }
   },
   _doRender: function(ctx) {
-    if (this._expand) {
-
+    if (this.children.length > 0 && this._expand) {
+        this.traces.forEach(function(trace) {
+          trace.render(ctx);
+        });
     }
     this.rect.render(ctx);
     this.text.render(ctx);
-    this.dot.render(ctx);
+    if (this.children.length > 0) {
+      this.dot.render(ctx);
+    }
   }
 }, AbstractTreeNode);
 
@@ -113,14 +138,35 @@ var TreeNode = Class(function TreeNode(x, y, parent, options) {
   this.rect.fillStyle = '#f3f5f7';
   this.rect.strokeStyle = '#efefef';
 }, {
-  setPosition: function(x, y) {
+  _afterLayout: function(x, y) {
     var ps = this.points;
     ps[0].x = x;
     ps[0].y = y;
-    this.dot.setPosition(x + ITEM_WIDTH - 2 * PADDING, y);
-    this.rect.setPosition(x - PADDING, y - ITEM_HEIGHT / 2);
-    this.text.setPosition(x + ITEM_WIDTH / 2 - PADDING, y);
-    this._setTracePoints(x + ITEM_WIDTH - PADDING * 2, y);
+    this.dot.setPosition(x - ITEM_WIDTH / 2 + PADDING + DOT_RADIUS, y);
+    this.rect.setPosition(x - ITEM_WIDTH / 2, y - ITEM_HEIGHT / 2);
+    this.text.setPosition(x, y);
+  },
+  _afterChildrenLayout: function() {
+    var traces = this.traces;
+    var dp = this.dot.points[0];
+    var px = dp.x;
+    var py = dp.y;
+
+    this.children.forEach(function(child, idx) {
+      var trace = traces[idx];
+      var ps = trace.points;
+      var cd = child.dot.points[0];
+      var cx = cd.x;
+      var cy = cd.y;
+      ps[0].x = px;
+      ps[0].y = py;
+      ps[3].x = cx;
+      ps[3].y = cy;
+      ps[1].x = px + (cx - px ) / 4;
+      ps[1].y = cy - (cy - py) / 3;
+      ps[2].x = cx - (cx - px) / 4;
+      ps[2].y = py + (cy - py) / 3;
+    });
   }
 }, RootTreeNode);
 
@@ -129,15 +175,16 @@ module.exports = Class(function BasicTree(topX, topY, javasManager, treeData) {
 
   var tree = this;
 
-  this.root = new RootTreeNode(topX, topY, tree, {
+  this.root = new RootTreeNode(0, 0, tree, {
     text: treeData.text
   });
 
   function build(node, parentShape) {
     var dc = node.children;
+    var nc = parentShape.children;
     var i;
     for (i = 0; i < dc.length; i++) {
-      parentShape.addChild(new TreeNode(0, 0, parentShape, {
+      parentShape._appendChild(new TreeNode(0, 0, parentShape, {
         text: dc[i].text
       }));
       build(dc[i], nc[i]);
@@ -146,7 +193,11 @@ module.exports = Class(function BasicTree(topX, topY, javasManager, treeData) {
 
   build(treeData, this.root);
 
-  TreeLayout.layout(this.root);
+  TreeLayout.layout(this.root, {
+    topX: topX,
+    topY: topY,
+    minMargin: 30
+  });
 
 }, {
   render: function(ctx) {

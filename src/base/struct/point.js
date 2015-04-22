@@ -3,7 +3,9 @@ var JPoint = Class(function JPoint(x, y) {
   this.x = x;
   this.y = y;
 }, {
-  //todo 以后可能需要进行二维向量计算
+  toString: function() {
+    return '[' + this.x + ', ' + this.y + ']';
+  }
 });
 
 module.exports = JPoint;
