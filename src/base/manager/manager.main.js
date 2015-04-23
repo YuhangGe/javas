@@ -133,7 +133,7 @@ module.exports = Class(function Manager(target, options) {
   },
   height: {
     get: function() {
-      return this.canvas.width;
+      return this.canvas.height;
     },
     set: function(height) {
       this.canvas.height = height;

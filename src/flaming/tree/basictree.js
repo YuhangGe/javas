@@ -203,7 +203,6 @@ module.exports = Class(function BasicTree(topX, topY, javasManager, treeData) {
   this.base(javasManager, [new JPoint(topX, topY)], {});
 
   var tree = this;
-  this._scale = 1.0;
 
   this.root = new RootTreeNode(0, 0, tree, {
     text: treeData.text

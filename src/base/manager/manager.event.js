@@ -39,7 +39,12 @@ Class.partial(Manager, function() {
   this._isMouseDown = false;
   this._isScrollDown = false;
 
-  this._mdPoint = new JPoint(0, 0);
+  this._mdPoint = {
+    x: 0,
+    y: 0,
+    offsetX: 0,
+    offsetY: 0
+  };
   this._mdtCount = 0;
   this._mdtTimeout = null;
   this._mdtDelegate = _.bind(this, function() {
@@ -147,10 +152,13 @@ Class.partial(Manager, function() {
   _mdHandler: function(event) {
     this._isMouseDown = true;
 
+    var m = this._mdPoint;
     var x = event.layerX;
     var y = event.layerY;
-    this._mdPoint.x = x;
-    this._mdPoint.y = y;
+    m.x = x;
+    m.y = y;
+    m.offsetX = this._offsetX;
+    m.offsetY = this._offsetY;
     var ev;
 
     var shape = this._chooseShape(x, y);
@@ -177,8 +185,8 @@ Class.partial(Manager, function() {
     var ev;
 
     if (this._isScrollDown) {
-      this._offsetX += (x - m.x) / this._scaleX;
-      this._offsetY += (y - m.y) / this._scaleY;
+      this._offsetX = m.offsetX + (x - m.x) / this.scaleX;
+      this._offsetY = m.offsetY + (y - m.y) / this.scaleY;
       this.paintIfNeed();
     } else {
       this._cShape(event);
@@ -226,8 +234,14 @@ Class.partial(Manager, function() {
       return;
     }
     var delta = $.getWheelDelta(e);
+    var x = e.layerX;
+    var y = e.layerY;
+    var ps = this.scaleX;
+    var py = this.scaleY;
     this.scaleX *= (1 + delta.deltaY / 100);
     this.scaleY *= (1 + delta.deltaY / 100);
+    this._offsetX -= x * (this.scaleX / ps - 1) / this.scaleX;
+    this._offsetY -= y * (this.scaleY / py - 1) / this.scaleY;
     this.paintIfNeed();
     $.stop(e);
   },
@@ -244,25 +258,40 @@ Class.partial(Manager, function() {
   _kpHandler: function(ev) {
     var ctrlKey = ev.ctrlKey || ev.metaKey;
     var c = ev.keyCode;
-    var c_key = (ctrlKey ? "ctrl-" : "") + (ev.shiftKey ? "shift-" : "") + (ev.altKey ? "alt-" : "") + (KEY_TABLE[c] ? String.fromCharCode(c).toLowerCase() : KEY_TABLE[c]);
+    var c_key = (ctrlKey ? "ctrl-" : "") + (ev.shiftKey ? "shift-" : "") + (ev.altKey ? "alt-" : "") + (KEY_TABLE[c] ? KEY_TABLE[c] : String.fromCharCode(c).toLowerCase());
     if (this._emitMap.has(c_key)) {
       this._emit(c_key);
+      $.stop(ev);
     }
     if (this._emitMap.has('keydown')) {
       this._emit('keydown', ev);
     }
   },
   _zoomOutHandler: function() {
-
+    this._zoom(1);
   },
   _zoomInHandler: function() {
-
+    this._zoom(-1);
   },
   _zoomOriginHandler: function() {
-
+    this._zoom(0);
+  },
+  _zoom: function(type) {
+    var x = this.width / 2;
+    var y = this.height / 2;
+    var ps = this.scaleX;
+    var py = this.scaleY;
+    var ns = type === 0 ? 1.0 : this.scaleX * (1 + type * 0.1);
+    var ny = type === 0 ? 1.0 : this.scaleY * (1 + type * 0.1);
+    this.scaleX = ns;
+    this._offsetX -= x * (this.scaleX / ps - 1) / this.scaleX;
+    this.scaleY = ny;
+    this._offsetY -= y * (this.scaleY / py - 1) / this.scaleY;
+    this.paintIfNeed();
   },
   adjust: function(dx, dy) {
-    this.offsetX += dx / this.scaleX;
-    this.offsetY += dy / this.scaleY;
+    this._offsetX += dx;
+    this._offsetY += dy;
+    this.paintIfNeed();
   }
 });
