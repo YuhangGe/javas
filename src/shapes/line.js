@@ -3,8 +3,8 @@ var BaseShape = require('../base/shape.js');
 var Class = require('j-oo');
 var JPoint = require('../base/struct/point.js');
 
-module.exports = Class(function LineShape(x1, y1, x2, y2, container, options) {
-  this.base(container, [new JPoint(x1, y1), new JPoint(x2, y2)], options);
+module.exports = Class(function LineShape(point1, point2, container, options) {
+  this.base(container, [point1, point2], options);
   this.lineCap = options.lineCap ? options.lineCap : 'round';
 }, {
   setPosition: function(x1, y1, x2, y2) {

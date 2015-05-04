@@ -29,6 +29,15 @@ function $extend(src, dst) {
       throw 'extend error';
     }
   }
+  return src;
+}
+function $merge(src, dst) {
+  for (var k in src) {
+    if ($hasProperty(dst, k)) {
+      src[k] = dst[k];
+    }
+  }
+  return src;
 }
 function $query(queryString) {
   return document.querySelector(queryString);
@@ -89,6 +98,7 @@ function $defineGetterSetter(obj, prop, getter, setter, configurable, enumerable
 }
 var Utility = {
   extend: $extend,
+  merge: $merge,
   hasProperty: $hasProperty,
   querySelector: $query,
   isString: $isString,
@@ -128,7 +138,10 @@ $extend(Utility, {
     return window.performance.now();
   },
   requestAFrame: function(fn) {
-    window.requestAnimationFrame(fn);
+    return window.requestAnimationFrame(fn);
+  },
+  cancelAFrame: function(frame) {
+    window.cancelRequestAnimationFrame(frame);
   },
   warn: function() {
     console.warn.apply(console, arguments);
@@ -144,13 +157,6 @@ $extend(Utility, {
     givenOptions = givenOptions || {};
     walkMergeOptions(givenOptions, defaultOptions);
     return givenOptions;
-  },
-  merge: function (src, dst) {
-    for (var k in src) {
-      if ($hasProperty(dst, k)) {
-        src[k] = dst[k];
-      }
-    }
   },
   assert: function (condition) {
     if (Config.debug && !condition) {

@@ -27,5 +27,11 @@
   "bugs": {
     "url": "https://github.com/YuhangGe/javas/issues"
   },
-  "homepage": "https://github.com/YuhangGe/javas"
+  "homepage": "https://github.com/YuhangGe/javas",
+  "spm": {
+    "dependencies": {
+      "anima-canvas": "~1.2.3",
+      "j-oo": "~0.0.2"
+    }
+  }
 }

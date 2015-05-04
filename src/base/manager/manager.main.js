@@ -2,7 +2,7 @@ var _ = require('../../util/util.js');
 var ShapeList = require('../struct/list.js');
 var JCavnas = require('../canvas.js');
 var Class = require('j-oo');
-var JAnimation = require('../animation.js');
+var JAnimation = require('../../animation/animation.js');
 var JColor = require('../../color/color.js');
 
 var defaultOptions = {

@@ -5,11 +5,11 @@ var BezierShape = require('../../shapes/bezier.js');
 var JPoint = require('../../base/struct/point.js');
 var TreeDotShape = require('./treedot.js');
 var RectShape = require('../../shapes/rect.js');
-var TreeLayout = require('../../math/treelayout.js');
+var TreeLayout = require('../../math/layout/tree.js');
 var DOT_RADIUS = 8;
 var ITEM_WIDTH = 170;
 var ITEM_HEIGHT = 35;
-var TRACE_LINE_WIDTH = 8;
+var TRACE_LINE_WIDTH = 5;
 var PADDING = 6;
 var _ = require('../../util/util.js');
 
@@ -38,7 +38,7 @@ var AbstractTreeNode = Class(function AbstractTreeNode(x, y, width, height, cont
   _appendChild: function(child) {
     this.children.push(child);
     this.traces.push(new BezierShape(this, JPoint.create(4), {
-      strokeStyle: '#f3f5f7',
+      strokeStyle: 'rgba(243, 245, 247, 0.8)',
       lineWidth: TRACE_LINE_WIDTH
     }));
   }
@@ -158,8 +158,8 @@ var RootTreeNode  = Class(function RootTreeNode(x, y, container, options) {
 var TreeNode = Class(function TreeNode(x, y, parent, options) {
   this.base(x, y, parent, options);
   this.parent = parent;
-  this.rect.fillStyle = '#f3f5f7';
-  this.rect.strokeStyle = '#efefef';
+  this.rect.fillStyle = 'rgb(246, 248, 250)';
+  this.rect.strokeStyle = '#eeeeee';
 }, {
   _layout: function(x, y) {
     /*

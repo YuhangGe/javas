@@ -10,7 +10,7 @@ Class.partial(Manager, function() {
   this.loopIntervalTime = 1000 / this.FPS;
   this.loopNextIntervalTime = 0;
   this.loopStartTime = 0;
-
+  this.loopFrame = null;
   this._loopRunning = false;
   this._fps_show = Config.showFPS;
   this._fps_time = 0;
@@ -55,7 +55,6 @@ Class.partial(Manager, function() {
     this._pfnTimeout = null;
   },
   paint: function() {
-    _.log('manager paint');
     var ctx = this.context;
     var ectx = this._econtext;
 
@@ -92,10 +91,8 @@ Class.partial(Manager, function() {
         paused = false;
       }
     });
-    /*
-     * 如果没有动画并且所有元素都达到了稳定状态，则可以不再重复绘制。
-     */
-    this.loopRunning = this._animationList.length > 0 || !paused;
+
+    return paused;
   },
   _paintFPS: function(nowTime) {
     if (!this._fps_show) {
@@ -122,11 +119,18 @@ Class.partial(Manager, function() {
       this.loopNextIntervalTime += this.loopIntervalTime;
     }
     if (this._loopRunning) {
-      requestAnimationFrame(this.loopDelegate);
+      this.loopFrame = _.requestAFrame(this.loopDelegate);
+    } else {
+      this.loopFrame = null;
     }
   },
+  loopIfNeed: function() {
+    if (this._loopRunning || this.loopFrame) {
+      return;
+    }
+    this._loopStart();
+  },
   _loopRender: function (curTime) {
-    //_.log('loop render:', curTime);
     var ctx = this.context;
     var ectx = this._econtext;
     var aniNotifyMap = this._aniNotifyMap;
@@ -146,6 +150,8 @@ Class.partial(Manager, function() {
     ctx.lineWidth = ectx.lineWidth = this.lineWidth;
 
     var all_finish = true;
+    var has_finish = false;
+    var has_run = false;
     this._animationList.forEach(function(ani) {
       if (ani.state === 'delay' && curTime > ani.startTime) {
         ani.start(curTime);
@@ -167,20 +173,31 @@ Class.partial(Manager, function() {
             }
           }
         });
+        has_run = true;
       }
       if (ani.state !== 'stable') {
         all_finish = false;
+      } else {
+        has_finish = true;
       }
     });
 
     if (all_finish) {
       this._animationList.length = 0;
+    } else if (has_finish) {
+      this._animationList = this._animationList.filter(function(ani) {
+        return ani.state !== 'stable';
+      });
     }
 
     /*
      * 绘制图形
      */
-    this._paintShapes();
+    var all_stable = this._paintShapes();
+    /*
+     * 如果没有动画并且所有元素都达到了稳定状态，则可以不再重复绘制。
+     */
+    this.loopRunning = has_run || !all_stable;
 
     ctx.restore();
     ectx.restore();
@@ -195,10 +212,11 @@ Class.partial(Manager, function() {
   _loopStart: function () {
     this.loopStartTime = this._fps_time = _.now();
     this.loopNextIntervalTime = this.loopStartTime + this.loopIntervalTime;
+    this.loopRunning = true;
     /*
      * 开始主循环。
      */
-    window.requestAnimationFrame(this.loopDelegate);
+    this.loopFrame = _.requestAFrame(this.loopDelegate);
 
   }
 });

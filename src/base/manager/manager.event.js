@@ -91,12 +91,11 @@ Class.partial(Manager, function() {
     } else {
       $.on(canvas, 'mousedown', this._mdDelegate);
       $.on(canvas, 'mousemove', _.bind(this, this._mCheckHandler));
-
       $.on(canvas, 'contextmenu', $.stop);
 
     }
 
-    $.on(document.body, 'keydown', _.bind(this, this._kpHandler));
+    //$.on(document.body, 'keydown', _.bind(this, this._kpHandler));
 
     if (this.scalable) {
       this.on('ctrl-=', _.bind(this, this._zoomOutHandler));
@@ -108,10 +107,10 @@ Class.partial(Manager, function() {
     if (this.scrollable) {
       $.on(canvas, 'mousewheel', _.bind(this, this._wheelScrollHandler));
     }
-    //this.on('left', _.bind(this, this._keyLeftHandler));
-    //this.on('right', _.bind(this, this._keyRightHandler));
-    //this.on('up', _.bind(this, this._keyUpHandler));
-    //this.on('down', _.bind(this, this._keyDownHandler));
+    this.on('left', _.bind(this, this._keyLeftHandler));
+    this.on('right', _.bind(this, this._keyRightHandler));
+    this.on('up', _.bind(this, this._keyUpHandler));
+    this.on('down', _.bind(this, this._keyDownHandler));
 
   },
   _mCheckHandler: function(event) {
@@ -132,7 +131,14 @@ Class.partial(Manager, function() {
     var shape = this._chooseShape(x, y);
     if (shape) {
       if (shape === this._mOverShape) {
-        this._mOverShape._onMouseMove(new JEvent(event));
+        var ev = new JEvent(event);
+        shape._onMouseMove(ev);
+        if (this._isMouseDown) {
+          var m = this._mdPoint;
+          ev.deltaX = x - m.x;
+          ev.deltaY = y - m.y;
+          shape._onMouseDrag(ev);
+        }
       } else if (!this._mOverShape) {
         shape._onMouseEnter();
         this.cursor = shape.cursor;
@@ -183,7 +189,6 @@ Class.partial(Manager, function() {
     var y = event.layerY;
     var m = this._mdPoint;
     var ev;
-
     if (this._isScrollDown) {
       this._offsetX = m.offsetX + (x - m.x) / this.scaleX;
       this._offsetY = m.offsetY + (y - m.y) / this.scaleY;
@@ -210,21 +215,28 @@ Class.partial(Manager, function() {
 
     var x = event.layerX;
     var y = event.layerY;
-    var ev;
+    var ev, m;
     if (this._isScrollDown) {
       this.cursor = this._defaultCursor;
     } else {
       var shape = this._chooseShape(x, y);
       if (shape) {
         ev = new JEvent(event);
+        m = this._mdPoint;
+        ev.deltaX = x - m.x;
+        ev.deltaY = y - m.y;
         shape._onMouseUp(ev);
       }
     }
 
     if (this._emitMap.has('mouseup')) {
       ev = new JEvent(event);
+      m = this._mdPoint;
+      ev.deltaX = x - m.x;
+      ev.deltaY = y - m.y;
       this._emit('mouseup', ev);
     }
+    this._isScrollDown = false;
 
     $.off(window, $.touchEvent.move, this._mvDelegate);
     $.off(window, $.touchEvent.up, this._muDelegate);

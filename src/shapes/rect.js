@@ -7,25 +7,32 @@ var PI = Math.PI;
 var PI2 = Math.PI * 2;
 var halfPI = Math.PI * 0.5;
 
-module.exports = Class(function RectShape(left, top, width, height, container, options) {
+module.exports = Class(function RectShape(positionPoint, width, height, container, options) {
   this.base(container, JPoint.create(4), options);
+  this.points[0] = positionPoint;
   this.radius = options.radius ? options.radius : 0;
   this.width = width;
   this.height = height;
-  this.setPosition(left, top);
+  this._calc();
 }, {
-  setPosition: function(left, top) {
+  _calc: function() {
     var ps = this.points;
     var w = this.width;
     var h = this.height;
-    ps[0].x = left;
-    ps[0].y = top;
+    var left = ps[0].x;
+    var top = ps[0].y;
     ps[1].x = left + w;
     ps[1].y = top;
     ps[2].x = left + w;
     ps[2].y = top + h;
     ps[3].x = left;
     ps[3].y = top + h;
+  },
+  setPosition: function(left, top) {
+    var ps = this.points;
+    ps[0].x = left;
+    ps[0].y = top;
+    this._calc();
   },
   _doRender: function(ctx) {
     var ps = this.points;

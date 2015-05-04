@@ -2,6 +2,7 @@ var _ = require('../../util/util.js');
 var Class = require('j-oo');
 var defaultOptions = require('../option.js');
 var JColor = require('../../color/color.js');
+var AnimaCanvas = require('anima-canvas');
 
 function $isJColor(obj) {
   return obj instanceof JColor;
@@ -9,6 +10,16 @@ function $isJColor(obj) {
 
 module.exports = Class(function JContext(jcanvas) {
   this.canvas = jcanvas;
+  /*
+   *
+   */
+  var d = document.createElement('canvas');
+  d.style.display = 'none';
+  document.body.appendChild(d);
+  d.id = '$$anima-canvas$$';
+  this.anima_canvas = new AnimaCanvas({
+    id: '$$anima-canvas$$'
+  });
 
   this._ctx = jcanvas._originCanvas.getContext('2d');
   this._strokeStyle = defaultOptions.strokeStyle;

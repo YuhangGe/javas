@@ -128,6 +128,9 @@ module.exports = Class(function BaseShape(container, points, options) {
   _onMouseMove: function(event) {
     this._emit('mousemove', event);
   },
+  _onMouseDrag: function(event) {
+    this._emit('mousedrag', event);
+  },
   _onMouseDown: function(event) {
     this._emit('mousedown', event);
   },

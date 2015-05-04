@@ -1,4 +1,4 @@
-var _ = require('../util/util.js');
+var _ = require('../../util/util.js');
 /**
  * 树的较美观排版算法。
  * 算法的思想来自：http://emr.cs.iit.edu/~reingold/tidier-drawings.pdf
