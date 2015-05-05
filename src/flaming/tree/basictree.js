@@ -13,8 +13,8 @@ var TRACE_LINE_WIDTH = 5;
 var PADDING = 6;
 var _ = require('../../util/util.js');
 
-var AbstractTreeNode = Class(function AbstractTreeNode(x, y, width, height, container, options) {
-  this.base(container, [new JPoint(x, y)], options);
+var AbstractTreeNode = Class(function AbstractTreeNode(point, width, height, container, options) {
+  this.base(container, [point], options);
   this.parent = null;
   this.width = width;
   this.height = height;
@@ -44,9 +44,9 @@ var AbstractTreeNode = Class(function AbstractTreeNode(x, y, width, height, cont
   }
 }, BaseShape);
 
-var RootTreeNode  = Class(function RootTreeNode(x, y, container, options) {
-  this.base(x, y, ITEM_WIDTH, ITEM_HEIGHT, container, options);
-  this.text = new TextShape(0, 0, this, {
+var RootTreeNode  = Class(function RootTreeNode(centerPoint, container, options) {
+  this.base(centerPoint, ITEM_WIDTH, ITEM_HEIGHT, container, options);
+  this.text = new TextShape(new JPoint(), this, {
     baseline: 'middle',
     align: 'center',
     fillStyle: '#707070',
@@ -54,12 +54,12 @@ var RootTreeNode  = Class(function RootTreeNode(x, y, container, options) {
     fontFamily: 'Microsoft Yahei',
     text: options.text
   });
-  this.rect = new RectShape(0, 0, ITEM_WIDTH, ITEM_HEIGHT, this, {
+  this.rect = new RectShape(new JPoint(), ITEM_WIDTH, ITEM_HEIGHT, this, {
     radius: ITEM_HEIGHT / 2,
     fillStyle: '#b4e9fc'
   });
 
-  this.dot = new TreeDotShape(this, {
+  this.dot = new TreeDotShape(new JPoint(), this, {
     radius: DOT_RADIUS,
     fillStyle: '#00C8FE',
     crossColor: '#ffffff',
@@ -68,7 +68,7 @@ var RootTreeNode  = Class(function RootTreeNode(x, y, container, options) {
   });
 
   var me = this;
-  this.dot.on('mousedown', function(event) {
+  this.dot.on('mousedown', function() {
     me.expand = !me._expand;
   });
 
@@ -155,8 +155,8 @@ var RootTreeNode  = Class(function RootTreeNode(x, y, container, options) {
   }
 }, AbstractTreeNode);
 
-var TreeNode = Class(function TreeNode(x, y, parent, options) {
-  this.base(x, y, parent, options);
+var TreeNode = Class(function TreeNode(parent, options) {
+  this.base(new JPoint(), parent, options);
   this.parent = parent;
   this.rect.fillStyle = 'rgb(246, 248, 250)';
   this.rect.strokeStyle = '#eeeeee';
@@ -199,12 +199,9 @@ var TreeNode = Class(function TreeNode(x, y, parent, options) {
   }
 }, RootTreeNode);
 
-module.exports = Class(function BasicTree(topX, topY, javasManager, treeData) {
-  this.base(javasManager, [new JPoint(topX, topY)], {});
-
-  var tree = this;
-
-  this.root = new RootTreeNode(0, 0, tree, {
+module.exports = Class(function BasicTree(topPoint, javasManager, treeData) {
+  this.base(javasManager, [topPoint], {});
+  this.root = new RootTreeNode(topPoint, this, {
     text: treeData.text
   });
 
@@ -213,7 +210,7 @@ module.exports = Class(function BasicTree(topX, topY, javasManager, treeData) {
     var nc = parentShape.children;
     var i;
     for (i = 0; i < dc.length; i++) {
-      parentShape._appendChild(new TreeNode(0, 0, parentShape, {
+      parentShape._appendChild(new TreeNode(parentShape, {
         text: dc[i].text,
         expand: dc[i].expand !== false
       }));

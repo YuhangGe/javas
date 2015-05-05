@@ -1,7 +1,7 @@
 var Class = require('j-oo');
 var JPoint = Class(function JPoint(x, y) {
-  this.x = x;
-  this.y = y;
+  this.x = x ? x : 0;
+  this.y = y ? y : 0;
 }, {
   toString: function() {
     return '[' + this.x + ', ' + this.y + ']';
