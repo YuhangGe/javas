@@ -23,32 +23,17 @@ module.exports = Class(function NetShape(javasManager, netData, options) {
     node.__weight = 0;
     node.__dp = {x: 0, y: 0};
     node
-      .on('mousedown', function() {
-        _.log('md', node.id);
-        _.log(node.points[0]);
+      .on('dragstart', function() {
         node.fixed = true;
-        var p = node.points[0];
-        node.__dp.x = node.px;
-        node.__dp.y = node.py;
-        _.log(node.__dp);
       })
-      .on('mousedrag', function(ev) {
+      .on('drag', function() {
         var p = node.points[0];
-        //node.py = node.x = p.x = node.__dp.x + ev.deltaX;
-        //node.py = node.y = p.y = node.__dp.y + ev.deltaY;
-        p.x = node.x = node.px = node.__dp.x + ev.deltaX;
-        p.y = node.y = node.py = node.__dp.y + ev.deltaY;
-        //node.paint();
+        node.x = node.px = p.x;
+        node.y = node.py = p.y;
         me.layout.run();
       })
-      .on('mouseup', function(ev) {
-
+      .on('dragend', function() {
         node.fixed = false;
-        //node.py = ev.x;
-        //node.px = ev.y;
-        node.px = node.__dp.x + ev.deltaX;
-        node.py = node.__dp.y + ev.deltaY;
-        _.log(ev.x, ev.y, ev.deltaX, ev.deltaY);
         me.layout.run();
       });
     me.nodes.push(node);

@@ -32,6 +32,7 @@ if($.browserDetect.firefox) {
 
 Class.partial(Manager, function() {
   this._mOverShape = null;
+  this._mDragShape = null;
   this._mdDelegate = _.bind(this, this._mdHandler);
   this._mvDelegate = _.bind(this, this._mvHandler);
   this._muDelegate = _.bind(this, this._muHandler);
@@ -45,12 +46,13 @@ Class.partial(Manager, function() {
     offsetX: 0,
     offsetY: 0
   };
-  this._mdtCount = 0;
-  this._mdtTimeout = null;
-  this._mdtDelegate = _.bind(this, function() {
-    this._mdtCount = 0;
-    this._mdtTimeout = null;
-  });
+  //todo 支持双击，三击以及长摁事件
+  //this._mdtCount = 0;
+  //this._mdtTimeout = null;
+  //this._mdtDelegate = _.bind(this, function() {
+  //  this._mdtCount = 0;
+  //  this._mdtTimeout = null;
+  //});
 
   this._hasMV = false;
   this._emitMap = new Map();
@@ -95,7 +97,7 @@ Class.partial(Manager, function() {
 
     }
 
-    //$.on(document.body, 'keydown', _.bind(this, this._kpHandler));
+    $.on(document.body, 'keydown', _.bind(this, this._kpHandler));
 
     if (this.scalable) {
       this.on('ctrl-=', _.bind(this, this._zoomOutHandler));
@@ -117,10 +119,9 @@ Class.partial(Manager, function() {
     if (this._isMouseDown) {
       return;
     }
-
     this._cShape(event);
     if (this._hasMV) {
-      var ev = new JEvent(event);
+      var ev = new JEvent(this, event);
       this._emit('mousemove', ev);
     }
 
@@ -130,34 +131,27 @@ Class.partial(Manager, function() {
     var y = event.layerY;
     var shape = this._chooseShape(x, y);
     if (shape) {
+      var ev = new JEvent(this, event);
       if (shape === this._mOverShape) {
-        var ev = new JEvent(event);
         shape._onMouseMove(ev);
-        if (this._isMouseDown) {
-          var m = this._mdPoint;
-          ev.deltaX = x - m.x;
-          ev.deltaY = y - m.y;
-          shape._onMouseDrag(ev);
-        }
       } else if (!this._mOverShape) {
-        shape._onMouseEnter();
+        shape._onMouseEnter(ev);
         this.cursor = shape.cursor;
       } else {
-        this._mOverShape._onMouseLeave();
-        shape._onMouseEnter();
+        this._mOverShape._onMouseLeave(ev);
+        shape._onMouseEnter(ev);
         this.cursor = shape.cursor;
       }
-    } else {
-      if (this._mOverShape) {
-        this._mOverShape._onMouseLeave();
-        this.cursor = this._defaultCursor;
-      }
+      this._mOverShape = shape;
+    } else if (this._mOverShape) {
+      this._mOverShape._onMouseLeave();
+      this.cursor = this._defaultCursor;
+      this._mOverShape = null;
     }
-    this._mOverShape = shape;
   },
   _mdHandler: function(event) {
     this._isMouseDown = true;
-
+    this._mDragShape = null;
     var m = this._mdPoint;
     var x = event.layerX;
     var y = event.layerY;
@@ -165,20 +159,25 @@ Class.partial(Manager, function() {
     m.y = y;
     m.offsetX = this._offsetX;
     m.offsetY = this._offsetY;
-    var ev;
+    var ev = new JEvent(this, event);
 
     var shape = this._chooseShape(x, y);
     if (shape) {
-      ev = new JEvent(event);
-      shape._onMouseDown(ev);
+      shape._emit('mousedown', ev);
+      if (shape.draggable) {
+        this._mDragShape = shape;
+        shape._onDragStart(ev);
+      }
     } else if (this.scrollable) {
       this._isScrollDown = true;
       this.cursor = 'move';
     }
     if (this._emitMap.has('mousedown')) {
-      ev = new JEvent(event);
       this._emit('mousedown', ev);
     }
+
+    /* 这行代码可能是多余的。为了保守起见，调用destroy保证内存及时回收 */
+    ev.destroy();
 
     $.on(window, $.touchEvent.move, this._mvDelegate);
     $.on(window, $.touchEvent.up, this._muDelegate);
@@ -188,8 +187,13 @@ Class.partial(Manager, function() {
     var x = event.layerX;
     var y = event.layerY;
     var m = this._mdPoint;
-    var ev;
-    if (this._isScrollDown) {
+    var ev = new JEvent(this, event);
+    ev.deltaX = x - m.x;
+    ev.deltaY = y - m.y;
+
+    if (this._mDragShape) {
+      this._mDragShape._onDrag(ev);
+    } else if (this._isScrollDown) {
       this._offsetX = m.offsetX + (x - m.x) / this.scaleX;
       this._offsetY = m.offsetY + (y - m.y) / this.scaleY;
       this.paintIfNeed();
@@ -198,45 +202,42 @@ Class.partial(Manager, function() {
     }
 
     if (this._hasMV) {
-      ev = new JEvent(event);
       this._emit('mousemove', ev);
     }
 
     if (this._emitMap.has('mousedrag')) {
-      ev = new JEvent(event);
-      ev.deltaX = x - m.x;
-      ev.deltaY = y - m.y;
       this._emit('mousedrag', ev)
     }
 
+    /* 这行代码可能是多余的。为了保守起见，调用destroy保证内存及时回收 */
+    ev.destroy();
   },
   _muHandler: function(event) {
     this._isMouseDown = false;
 
     var x = event.layerX;
     var y = event.layerY;
-    var ev, m;
-    if (this._isScrollDown) {
+    var ev = new JEvent(this, event);
+    var m = this._mdPoint;
+    ev.deltaX = x - m.x;
+    ev.deltaY = y - m.y;
+    var shape;
+
+    if (this._mDragShape) {
+      this._mDragShape._onDragEnd(ev);
+    } else if (this._isScrollDown) {
       this.cursor = this._defaultCursor;
-    } else {
-      var shape = this._chooseShape(x, y);
-      if (shape) {
-        ev = new JEvent(event);
-        m = this._mdPoint;
-        ev.deltaX = x - m.x;
-        ev.deltaY = y - m.y;
+    } else if (shape = this._chooseShape(x, y)) {
         shape._onMouseUp(ev);
-      }
     }
 
     if (this._emitMap.has('mouseup')) {
-      ev = new JEvent(event);
-      m = this._mdPoint;
-      ev.deltaX = x - m.x;
-      ev.deltaY = y - m.y;
       this._emit('mouseup', ev);
     }
     this._isScrollDown = false;
+
+    /* 这行代码可能是多余的。为了保守起见，调用destroy保证内存及时回收 */
+    ev.destroy();
 
     $.off(window, $.touchEvent.move, this._mvDelegate);
     $.off(window, $.touchEvent.up, this._muDelegate);

@@ -2,6 +2,7 @@ var _ = require('../util/util.js');
 var Class = require('j-oo');
 var baseOptions = require('./option.js');
 var JColor = require('../color/color.js');
+var JPoint = require('./struct/point.js');
 
 function getStyle(sty) {
   if (!sty) {
@@ -24,8 +25,9 @@ module.exports = Class(function BaseShape(container, points, options) {
   this.container = container;
   this.state = options.state ? options.state : 'stable'; // wait, run, stable
   this.points = points;
+  this.tmpPoints = JPoint.copy(points);
   this.cursor = options.cursor ? options.cursor : container.cursor;
-
+  this.draggable = options.draggable ? true : false;
   this._chooseId = '';
   this._chooseColor = null;
   this._rac = 0; //running animation count;
@@ -142,6 +144,23 @@ module.exports = Class(function BaseShape(container, points, options) {
   },
   _onMouseUp: function(event) {
     this._emit('mouseup', event);
+  },
+  _onDragStart: function(event) {
+    JPoint.copy(this.points, this.tmpPoints);
+    this._emit('dragstart', event);
+  },
+  _onDrag: function(event) {
+    var tps = this.tmpPoints;
+    this.points.forEach(function(p, idx) {
+      var tp = tps[idx];
+      p.x = tp.x + event.deltaX / event.javasManager.scaleX;
+      p.y = tp.y + event.deltaY / event.javasManager.scaleY;
+    });
+    this._emit('drag', event);
+    this.paint();
+  },
+  _onDragEnd: function(event) {
+    this._emit('dragend', event);
   },
   runningAnimationCount: {
     get: function() {

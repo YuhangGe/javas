@@ -175,6 +175,9 @@ module.exports = Class(function Manager(target, options) {
       this.shapeList.add(shape, zIndex);
     }
     this.loopRunning = true; //通知重绘（如果已经停止）
+    if (shape.draggable) {
+      this.registerEventShape(shape);
+    }
     // 返回自身，方便链式调用
     return this;
   },
@@ -188,9 +191,11 @@ module.exports = Class(function Manager(target, options) {
     this._chooseMap.set(shape._chooseId, shape);
   },
   _chooseShape: function(x, y) {
+    if (this._chooseMap.size === 0) {
+      return null;
+    }
     var dt = this._econtext.getImageData(x, y, 1, 1);
     var cd = dt.data;
-    //_.log(x, y);
     var k;
     if (cd[3] === 255 && this._chooseMap.has((k = rgb2str(cd)))) {
       return this._chooseMap.get(k);

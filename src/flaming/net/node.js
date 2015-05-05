@@ -7,6 +7,7 @@ var CircleShape = require('../../shapes/circle.js');
 module.exports = Class(function NetNode(centerPoint, container, options) {
   this.base(container, [centerPoint], options);
   this.circle = new CircleShape(centerPoint, options.radius, this, {
+    draggable: true,
     fillStyle: options.fillStyle,
     cursor: 'pointer'
   });

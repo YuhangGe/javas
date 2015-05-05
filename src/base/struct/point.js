@@ -24,3 +24,17 @@ JPoint.create = function(number) {
   }
   return rtn;
 };
+JPoint.copy = function(points, destPoints) {
+  var len = points.length;
+  destPoints = destPoints ? destPoints : new Array(len);
+  for (var i = 0; i < len; i++) {
+    var p = points[i];
+    if (destPoints[i]) {
+      destPoints[i].x = p.x;
+      destPoints[i].y = p.y;
+    } else {
+      destPoints[i] = new JPoint(p.x, p.y);
+    }
+  }
+  return destPoints;
+};
